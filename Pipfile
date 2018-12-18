@@ -10,6 +10,7 @@ django-webpack-loader = "*"
 "psycopg2" = "*"
 pillow = "*"
 channels = "*"
+channels-redis = "*"
 
 [dev-packages]
 

@@ -1,7 +1,13 @@
-from channels.routing import ProtocolTypeRouter
+# mysite/routing.py
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
+import chat.routing
 
 application = ProtocolTypeRouter({
-    # Empty for now (http->django views is added by default)
+    # (http->django views is added by default)
+    'websocket': AuthMiddlewareStack(
+        URLRouter(
+            music.routing.websocket_urlpatterns
+        )
+    ),
 })
-
-channel_routing = {}
