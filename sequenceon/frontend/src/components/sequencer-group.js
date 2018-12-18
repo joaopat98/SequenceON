@@ -66,6 +66,22 @@ class SequencerGroup extends Component {
         this.setState({ solo: this.state.solo === instrument ? undefined : instrument });
     }
 
+    componentDidMount() {
+        var chatSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/group/' + 1234 + '/');
+
+    chatSocket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        var message = data['message'];
+        console.log(message);
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+    }
+
     render() {
         let hidden = [...this.props.instruments];
         hidden.splice(this.props.instruments.indexOf(this.state.selectedInstrument), 1)
