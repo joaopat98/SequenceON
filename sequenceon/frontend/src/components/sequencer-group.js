@@ -67,20 +67,22 @@ class SequencerGroup extends Component {
     }
 
     componentDidMount() {
-        var chatSocket = new WebSocket(
+        this.chatSocket = new WebSocket(
         'ws://' + window.location.host +
         '/ws/group/' + 1234 + '/');
 
-    chatSocket.onmessage = function(e) {
+    this.chatSocket.onmessage = function(e) {
         var data = JSON.parse(e.data);
         var message = data['message'];
         console.log(message);
     };
 
-    chatSocket.onclose = function(e) {
+    this.chatSocket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
     };
     }
+
+
 
     render() {
         let hidden = [...this.props.instruments];
@@ -89,6 +91,8 @@ class SequencerGroup extends Component {
             <div className="sequencer-window">
                 <button onClick={this.download}>download</button>
                 <input type="file" onChange={this.loadNotes} />
+                <input onChange={(ev) => {this.text = ev.target.value}}/>
+                <button onClick={() => {this.chatSocket.send(this.text)}}>oof</button>
                 <div className="hidden-sequencers">
                     {hidden.map(instrument => (
                         <Sequencer key={instrument} xlen={this.state.xlen} drums={instrument === "Drums"} instrument={instrument} notes={this.notes} height="10vh" width="10%" select={this.selectSequencer} setSolo={this.setSolo} solo={this.state.solo} timer={this.timer} show={false} />

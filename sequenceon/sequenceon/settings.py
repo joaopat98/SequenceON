@@ -96,16 +96,6 @@ credfile = open(BASE_DIR + "/sequenceon/credentials.json")
 credentials = json.loads(credfile.read())
 credfile.close()
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "asgi_redis.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-        },
-        "ROUTING": "chat.routing.channel_routing",
-    },
-}
-
 DATABASES = {
     'default': credentials["DATABASE"]
 }
