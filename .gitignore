@@ -83,6 +83,6 @@ project/users/migrations/
 
 sequenceon/sequenceon/credentials\.json
 
-sequenceon/frontend/package-lock.json
+sequenceon/frontend/package-lock\.json
 
-sequenceon/webpack-stats.dev.json
+sequenceon/webpack-stats\.dev\.json
