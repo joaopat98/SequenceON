@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+django-webpack-loader = "*"
+"psycopg2-binary" = "*"
+"psycopg2" = "*"
+pillow = "*"
+channels = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
