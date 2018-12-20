@@ -25,13 +25,23 @@ class Grid extends Component {
         return {notes: props.notes[props.instrument]};
     }
 
+    receiveUpdate = data => {
+        switch (data.action) {
+            case "add":
+                data.notes.forEach(note => {
+                    this.addNote(note.x, note.y, note.length);
+                })
+        }
+    };
+
     shouldComponentUpdate(nextProps, nextState) {
         return shallowEqual(this.props, nextProps, this.state, nextState);
     }
 
-    addNote = (x, y) => {
-        this.props.addNote({x: x, y: y, length: this.state.length}, this.props.instrument);
-        let notes = [...this.state.notes, {x: x, y: y, length: this.state.noteSize}];
+    addNote = (x, y, length) => {
+        length = length !== undefined ? length : this.state.noteSize;
+        this.props.addNote({x: x, y: y, length: length}, this.props.instrument);
+        let notes = [...this.state.notes, {x: x, y: y, length: length}];
         this.setState({notes: notes});
     }
 
@@ -82,6 +92,7 @@ class Grid extends Component {
         document.addEventListener("keyup", this.updateShiftState);
         document.addEventListener("keydown", this.updateShiftState);
         this.props.timer.registerCallback(this.playNotes);
+        this.props.listeners[this.props.instrument] = this.receiveUpdate;
     }
 
     componentWillUnmount() {

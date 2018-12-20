@@ -11,7 +11,7 @@ class ChatConsumer(WebsocketConsumer):
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
-            self.scope["session"]["song"],
+            str(self.scope["session"]["song"]),
             self.channel_name
         )
 
@@ -20,7 +20,7 @@ class ChatConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(
-            self.scope["session"]["song"],
+            str(self.scope["session"]["song"]),
             self.channel_name
         )
 
@@ -44,7 +44,7 @@ class ChatConsumer(WebsocketConsumer):
                     new_note.save()
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
-            self.scope["session"]["song"],
+            str(self.scope["session"]["song"]),
             {
                 'type': 'chat_message',
                 'message': text_data
