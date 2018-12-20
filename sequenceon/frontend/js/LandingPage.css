@@ -1,0 +1,60 @@
+.landing-container{
+    height:100%;
+}
+
+.row-top{
+    background-image: url('images/background.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-size: 100%; 
+}
+.col-left{
+    margin-top:8vh;
+    height:92vh;
+}
+
+.info-box{
+    border-radius: 25px;
+    background-image: linear-gradient(rgb(214, 230, 255),#5E87F7 50%);
+}
+
+.row-bottom{
+    /*background-image: linear-gradient(#5E87F7,rgb(214, 230, 255) 80%);*/
+}
+
+.row-color-1{
+    background-color: rgb(191, 120, 238);
+}
+.row-color-2{
+    background-color: #5E87F7;
+}
+.row-color-3{
+    background-color: rgb(147, 238, 73);    
+}
+.row-color-4{
+    background-color: rgb(243, 200, 61);    
+}
+.row-color-5{
+    background-color: rgb(241, 241, 241);    
+}
+
+.col-bottom-1{
+    height:55vh;
+}
+.col-bottom-2{
+    height:55vh;
+    background-image: url('images/seq.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-right:0px;
+}
+.col-bottom-3{
+    height:55vh;
+}
+.col-bottom-4{
+    height:55vh;
+    background-image: url('images/profile.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-right:0px;
+}

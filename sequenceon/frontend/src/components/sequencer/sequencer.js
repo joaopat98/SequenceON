@@ -123,12 +123,12 @@ class Sequencer extends Component {
                     this.props.instrument !== "Drums" ?
                         <div className="sequencer">
                             <Keyboard scrollRef={this.keyboard} drums={false} keyHeight="20px" height="100%" width="10%" instrumentId={this.instrumentId} />
-                            <Grid onScroll={this.scroll} muted={this.state.muted} setSolo={this.props.setSolo} solo={this.props.solo} show={true} drums={false} notes={this.props.notes} xlen={this.props.xlen} timer={this.props.timer} bpm={120} cellWidth="30px" cellHeight="20px" height="100%" width="90%" instrumentId={this.instrumentId} instrument={this.props.instrument} />
+                            <Grid addNote={this.props.addNote} onScroll={this.scroll} muted={this.state.muted} setSolo={this.props.setSolo} solo={this.props.solo} show={true} drums={false} notes={this.props.notes} xlen={this.props.xlen} timer={this.props.timer} bpm={120} cellWidth="30px" cellHeight="20px" height="100%" width="90%" instrumentId={this.instrumentId} instrument={this.props.instrument} />
                         </div>
                         :
                         <div className="sequencer">
                             <Keyboard scrollRef={this.keyboard} drums={true} keyHeight="41px" height="100%" width="10%" instrumentId={this.instrumentId} />
-                            <Grid onScroll={this.scroll} muted={this.state.muted} setSolo={this.props.setSolo} solo={this.props.solo} show={true} drums={true} notes={this.props.notes} xlen={this.props.xlen} timer={this.props.timer} bpm={120} cellWidth="30px" cellHeight="41px" height="100%" width="90%" instrumentId={this.instrumentId} instrument={this.props.instrument} />
+                            <Grid addNote={this.props.addNote} onScroll={this.scroll} muted={this.state.muted} setSolo={this.props.setSolo} solo={this.props.solo} show={true} drums={true} notes={this.props.notes} xlen={this.props.xlen} timer={this.props.timer} bpm={120} cellWidth="30px" cellHeight="41px" height="100%" width="90%" instrumentId={this.instrumentId} instrument={this.props.instrument} />
                         </div>
                 )
                     :

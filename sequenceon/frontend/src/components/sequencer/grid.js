@@ -1,9 +1,9 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import Note from "./note";
 import MIDISounds from "midi-sounds-react";
 import GridBackground from "./grid-background";
 
-import { shallowEqual } from 'shouldcomponentupdate-children';
+import {shallowEqual} from 'shouldcomponentupdate-children';
 import Caret from "./caret";
 
 class Grid extends Component {
@@ -22,7 +22,7 @@ class Grid extends Component {
     }
 
     static getDerivedStateFromProps(props) {
-        return { notes: props.notes[props.instrument] };
+        return {notes: props.notes[props.instrument]};
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -30,9 +30,9 @@ class Grid extends Component {
     }
 
     addNote = (x, y) => {
-        let notes = [...this.state.notes, { x: x, y: y, length: this.state.noteSize }]
-        this.props.notes[this.props.instrument] = notes;
-        this.setState({ notes: notes });
+        this.props.addNote({x: x, y: y, length: this.state.length}, this.props.instrument);
+        let notes = [...this.state.notes, {x: x, y: y, length: this.state.noteSize}];
+        this.setState({notes: notes});
     }
 
     removeNotes = ev => {
@@ -43,7 +43,7 @@ class Grid extends Component {
                 notes.splice(j, 1);
             }
             this.props.notes[this.props.instrument] = notes;
-            this.setState({ notes: notes, selectedNotes: [] });
+            this.setState({notes: notes, selectedNotes: []});
         }
     }
 
@@ -53,13 +53,11 @@ class Grid extends Component {
                 this.setState(prevState => ({
                     selectedNotes: [...prevState.selectedNotes, note]
                 }));
+            } else {
+                this.setState({selectedNotes: [note,]});
             }
-            else {
-                this.setState({ selectedNotes: [note,] });
-            }
-        }
-        else if (!ev.target.classList.contains("note")) {
-            this.setState({ selectedNotes: [] })
+        } else if (!ev.target.classList.contains("note")) {
+            this.setState({selectedNotes: []})
         }
     }
 
@@ -67,7 +65,7 @@ class Grid extends Component {
         let i = this.state.notes.indexOf(note)
         let notes = this.state.notes.slice();
         notes[i].length = length;
-        this.setState({ notes: notes, noteSize: length });
+        this.setState({notes: notes, noteSize: length});
     }
 
     updateShiftState = ev => {
@@ -100,10 +98,9 @@ class Grid extends Component {
             if (this.drums) {
                 let drums = notes.map(note => this.drums[this.drums.length - note.y - 1]);
                 this.midiSounds.playDrumsNow(drums);
-            }
-            else {
+            } else {
                 notes = notes.map(note => {
-                    return { pitch: 7 * 12 + 23 - note.y, duration: this.props.timer.timeUnits(note.length) }
+                    return {pitch: 7 * 12 + 23 - note.y, duration: this.props.timer.timeUnits(note.length)}
                 });
                 notes.forEach(note => {
                     this.midiSounds.playChordNow(this.props.instrumentId, [note.pitch], note.duration);
@@ -121,27 +118,34 @@ class Grid extends Component {
         for (let i = 0; i < (this.props.drums ? 13 : 7 * 12); i++)
             yarr.push(i);
         return (
-            <div onScroll={ev => this.props.onScroll(ev.target.scrollTop)} className="grid-container" style={{ height: this.props.height, width: this.props.width }}>
+            <div onScroll={ev => this.props.onScroll(ev.target.scrollTop)} className="grid-container"
+                 style={{height: this.props.height, width: this.props.width}}>
                 {this.props.show ?
                     <div>
-                        <div className="grid-empty" style={{ height: "calc(" + (this.props.drums ? 13 : 7 * 12) + " * " + this.props.cellHeight + ")" }} />
-                        <GridBackground drums={this.props.drums} key="backGrid" xlen={this.props.xlen} ylen={this.props.drums ? 13 : 7 * 12} cellWidth={this.props.cellWidth} cellHeight={this.props.cellHeight} addNote={this.addNote} />
+                        <div className="grid-empty"
+                             style={{height: "calc(" + (this.props.drums ? 13 : 7 * 12) + " * " + this.props.cellHeight + ")"}}/>
+                        <GridBackground drums={this.props.drums} key="backGrid" xlen={this.props.xlen}
+                                        ylen={this.props.drums ? 13 : 7 * 12} cellWidth={this.props.cellWidth}
+                                        cellHeight={this.props.cellHeight} addNote={this.addNote}/>
                     </div>
                     : null
                 }
                 {this.props.show ?
-                    <div className="notes" style={{ width: "2px", height: "calc(" + (this.props.drums ? 13 : 7 * 12) + " * " + this.props.cellHeight + ")" }}>
+                    <div className="notes" style={{
+                        width: "2px",
+                        height: "calc(" + (this.props.drums ? 13 : 7 * 12) + " * " + this.props.cellHeight + ")"
+                    }}>
                         {this.state.notes.filter(note => note.x < this.props.timer._repeat).map(note => {
                             return <Note key={Math.floor(Math.random() * 1000000)}
-                                onClick={this.selectNote}
-                                cellHeight={this.props.cellHeight}
-                                cellWidth={this.props.cellWidth}
-                                note={note}
-                                changeLen={this.changeLen}
-                                select={this.selectNote}
-                                selected={this.state.selectedNotes.indexOf(note) !== -1} />
+                                         onClick={this.selectNote}
+                                         cellHeight={this.props.cellHeight}
+                                         cellWidth={this.props.cellWidth}
+                                         note={note}
+                                         changeLen={this.changeLen}
+                                         select={this.selectNote}
+                                         selected={this.state.selectedNotes.indexOf(note) !== -1}/>
                         })}
-                        <Caret timer={this.props.timer} cellWidth={this.props.cellWidth} />
+                        <Caret timer={this.props.timer} cellWidth={this.props.cellWidth}/>
                     </div>
                     : null
                 }
