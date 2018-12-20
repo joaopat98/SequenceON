@@ -11,6 +11,7 @@ class SequencerGroup extends Component {
         this.timer = new Timer(140, 32);
         this.timer.start()
         this.notes = {}
+        this.listeners = {};
         this.props.instruments.forEach(instrument => {
             this.notes[instrument] = [];
         });
@@ -67,19 +68,20 @@ class SequencerGroup extends Component {
         this.setState({solo: this.state.solo === instrument ? undefined : instrument});
     }
 
-    componentDidMount() {
+    connect() {
         Request.post("api/joinroom", new FormData()).then(() => {
             let fd = new FormData();
-            fd.append("instrument", "Drums");
+            fd.append("instrument", this.text);
             Request.post("api/selectinstrument", fd).then(() => {
                 this.chatSocket = new WebSocket(
                     'ws://' + window.location.host +
                     '/ws/group');
 
                 this.chatSocket.onmessage = function (e) {
-                    var data = JSON.parse(e.data);
-                    var message = data['message'];
-                    console.log(message);
+                    let data = JSON.parse(e.data);
+                    let message = data['message'];
+                    data = JSON.parse(message);
+                    this.listeners[data.instrument](data);
                 };
 
                 this.chatSocket.onclose = function (e) {
@@ -91,10 +93,10 @@ class SequencerGroup extends Component {
 
 
     addNote = (note, instrument) => {
-        let notes = [...this.notes[instrument], { x: note.x, y: note.y, length: note.length }];
+        let notes = [...this.notes[instrument], {x: note.x, y: note.y, length: note.length}];
         this.notes[instrument] = notes;
-        let data = {instrument: instrument, note:note}
-        this.chatSocket.send()
+        let data = {instrument: instrument, notes: [note], action: "add"};
+        this.chatSocket.send(JSON.stringify(data));
     };
 
 
@@ -108,13 +110,10 @@ class SequencerGroup extends Component {
                 <input onChange={(ev) => {
                     this.text = ev.target.value
                 }}/>
-                <button onClick={() => {
-                    this.chatSocket.send(this.text)
-                }}>oof
-                </button>
+                <button onClick={this.connect}>oof</button>
                 <div className="hidden-sequencers">
                     {hidden.map(instrument => (
-                        <Sequencer key={instrument} xlen={this.state.xlen} drums={instrument === "Drums"}
+                        <Sequencer listeners={this.listeners} key={instrument} xlen={this.state.xlen} drums={instrument === "Drums"}
                                    instrument={instrument} notes={this.notes} height="10vh" width="10%"
                                    select={this.selectSequencer} setSolo={this.setSolo} solo={this.state.solo}
                                    timer={this.timer} show={false}/>
@@ -124,7 +123,8 @@ class SequencerGroup extends Component {
                     </div>
                 </div>
                 <div className="main-sequencer">
-                    <Sequencer addNote={this.addNote} key={this.state.selectedInstrument} changeTimer={this.changeTimer} xlen={this.state.xlen}
+                    <Sequencer listeners={this.listeners} addNote={this.addNote} key={this.state.selectedInstrument} changeTimer={this.changeTimer}
+                               xlen={this.state.xlen}
                                drums={this.state.selectedInstrument === "Drums"}
                                instrument={this.state.selectedInstrument} notes={this.notes} height="70vh" width="80%"
                                select={this.selectSequencer} setSolo={this.setSolo} solo={this.state.solo}

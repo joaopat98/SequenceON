@@ -17,4 +17,4 @@ class Note(models.Model):
     time = models.IntegerField()
     pitch = models.IntegerField()
     length = models.IntegerField()
-    sheet = models.ForeignKey(Song, on_delete=models.CASCADE, related_name="notes")
+    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE, related_name="notes")
