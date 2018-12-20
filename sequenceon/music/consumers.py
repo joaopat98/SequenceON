@@ -45,8 +45,10 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from room group
     def chat_message(self, event):
         message = event['message']
-
-        # Send message to WebSocket
-        self.send(text_data=json.dumps({
-            'message': message
-        }))
+        obj = json.loads(message)
+        sheet = Sheet.objects.filter(id = self.scope["session"]["sheet"]).first()
+        if sheet.instrument != obj["instrument"]:      
+            # Send message to WebSocket
+            self.send(text_data=json.dumps({
+                'message': message
+            }))
