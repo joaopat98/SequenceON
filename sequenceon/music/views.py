@@ -43,9 +43,9 @@ def login_view(request):
 @login_required
 def join_room(request):
     if "room" in request.POST.keys():
-        song = Song.objects.filter(id=int(request.POST["room"]))
+        song = Song.objects.filter(id=int(request.POST["room"])).first()
         if song is not None:
-            request.session["song"] = song
+            request.session["song"] = song.id
             lst_copy = instrumentLst[:]
             used = map(lambda sheet: sheet.instrument, Sheet.objects.filter(song=song))
             for inst in used:

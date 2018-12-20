@@ -68,8 +68,13 @@ class SequencerGroup extends Component {
         this.setState({solo: this.state.solo === instrument ? undefined : instrument});
     }
 
-    connect() {
-        Request.post("api/joinroom", new FormData()).then(() => {
+    connect = () => {
+        let query = new URLSearchParams(window.location.search);
+        let fd = new FormData();
+        let room = query.get("room");
+        if (room !== null)
+            fd.append("room", room);
+        Request.post("api/joinroom", fd).then(() => {
             let fd = new FormData();
             fd.append("instrument", this.text);
             Request.post("api/selectinstrument", fd).then(() => {
@@ -77,10 +82,28 @@ class SequencerGroup extends Component {
                     'ws://' + window.location.host +
                     '/ws/group');
 
-                this.chatSocket.onmessage = function (e) {
+                this.chatSocket.onmessage = e => {
                     let data = JSON.parse(e.data);
                     let message = data['message'];
                     data = JSON.parse(message);
+                    switch (data.action) {
+                        case "add":
+                            data.notes.forEach(note => {
+                                let notes = [...this.notes[data.instrument], {
+                                    x: note.x,
+                                    y: note.y,
+                                    length: note.length
+                                }];
+                                this.notes[data.instrument] = notes;
+                            })
+                        case "remove":
+                            let notes = this.notes[data.instrument].slice();
+                            for (let i = 0; i < data.notes.length; i++) {
+                                let removing = data.notes[i];
+                                let j = notes.findIndex(note => (note.x === removing.x && note.y === removing.y));
+                                notes.splice(j, 1);
+                            }
+                    }
                     this.listeners[data.instrument](data);
                 };
 
@@ -99,6 +122,11 @@ class SequencerGroup extends Component {
         this.chatSocket.send(JSON.stringify(data));
     };
 
+    removeNotes = (notes, instrument) => {
+        let data = {notes: notes, instrument:instrument, action: "remove"};
+        this.chatSocket.send(JSON.stringify(data));
+    };
+
 
     render() {
         let hidden = [...this.props.instruments];
@@ -113,7 +141,8 @@ class SequencerGroup extends Component {
                 <button onClick={this.connect}>oof</button>
                 <div className="hidden-sequencers">
                     {hidden.map(instrument => (
-                        <Sequencer listeners={this.listeners} key={instrument} xlen={this.state.xlen} drums={instrument === "Drums"}
+                        <Sequencer removeNotes={this.removeNotes} listeners={this.listeners} key={instrument} xlen={this.state.xlen}
+                                   drums={instrument === "Drums"}
                                    instrument={instrument} notes={this.notes} height="10vh" width="10%"
                                    select={this.selectSequencer} setSolo={this.setSolo} solo={this.state.solo}
                                    timer={this.timer} show={false}/>
@@ -123,7 +152,8 @@ class SequencerGroup extends Component {
                     </div>
                 </div>
                 <div className="main-sequencer">
-                    <Sequencer listeners={this.listeners} addNote={this.addNote} key={this.state.selectedInstrument} changeTimer={this.changeTimer}
+                    <Sequencer removeNotes={this.removeNotes} listeners={this.listeners} addNote={this.addNote} key={this.state.selectedInstrument}
+                               changeTimer={this.changeTimer}
                                xlen={this.state.xlen}
                                drums={this.state.selectedInstrument === "Drums"}
                                instrument={this.state.selectedInstrument} notes={this.notes} height="70vh" width="80%"

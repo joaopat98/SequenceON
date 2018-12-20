@@ -29,8 +29,18 @@ class Grid extends Component {
         switch (data.action) {
             case "add":
                 data.notes.forEach(note => {
-                    this.addNote(note.x, note.y, note.length);
-                })
+                    let notes = [...this.state.notes, {x: note.x, y: note.y, length: note.length}];
+                    this.setState({notes: notes});
+                });
+                break;
+            case "remove":
+                let notes = this.state.notes.slice();
+                for (let i = 0; i < this.state.selectedNotes.length; i++) {
+                    let j = notes.indexOf(this.state.selectedNotes[i]);
+                    notes.splice(j, 1);
+                }
+                this.setState({notes: notes, selectedNotes: []});
+                break;
         }
     };
 
@@ -53,6 +63,7 @@ class Grid extends Component {
                 notes.splice(j, 1);
             }
             this.props.notes[this.props.instrument] = notes;
+            this.props.removeNotes(this.state.selectedNotes, this.props.instrument);
             this.setState({notes: notes, selectedNotes: []});
         }
     }
