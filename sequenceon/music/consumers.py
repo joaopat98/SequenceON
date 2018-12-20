@@ -33,6 +33,15 @@ class ChatConsumer(WebsocketConsumer):
                 for note in obj["notes"]:
                     new_note = Note(time=note["x"], pitch=note["y"], length=note["length"], sheet=sheet)
                     new_note.save()
+            elif obj["action"] == "remove":
+                for note in obj["notes"]:
+                    new_note = Note.objects.filter(time=note["x"], pitch=note["y"], sheet=sheet).first()
+                    new_note.delete()
+            elif obj["action"] == "change_length":
+                for note in obj["notes"]:
+                    new_note = None.objects.filter(time=note["x"], pitch=note["y"], sheet=sheet).first()
+                    new_note.length = note.length
+                    new_note.save()
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.scope["session"]["song"],
