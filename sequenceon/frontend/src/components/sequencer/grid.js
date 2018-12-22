@@ -34,13 +34,21 @@ class Grid extends Component {
                 });
                 break;
             case "remove":
-                let notes = this.state.notes.slice();
-                for (let i = 0; i < this.state.selectedNotes.length; i++) {
-                    let j = notes.indexOf(this.state.selectedNotes[i]);
-                    notes.splice(j, 1);
+                for (let i = 0; i < data.notes.length; i++) {
+                    let removing = data.notes[i];
+                    let j = this.state.notes.findIndex(note => (note.x === removing.x && note.y === removing.y));
+                    this.state.notes.splice(j, 1);
+                    this.forceUpdate()
                 }
-                this.setState({notes: notes, selectedNotes: []});
                 break;
+            case "change_length":
+                for (let i = 0; i < data.notes.length; i++) {
+                    let change = data.notes[i];
+                    let j = this.state.notes.findIndex(note => (note.x === note.x && note.y === change.y));
+                    let notes = this.state.notes.slice();
+                    notes[j].length = change.length;
+                    this.setState({notes: notes});
+                }
         }
     };
 
@@ -83,32 +91,35 @@ class Grid extends Component {
     }
 
     changeLen = (note, length) => {
-        let i = this.state.notes.indexOf(note)
+        let i = this.state.notes.indexOf(note);
         let notes = this.state.notes.slice();
         notes[i].length = length;
         this.setState({notes: notes, noteSize: length});
-    }
+        this.props.changeLen(notes[i], this.props.instrument);
+    };
 
     updateShiftState = ev => {
         if (ev.keyCode === 16) {
             this.shiftState = ev.type === "keydown"
         }
-    }
+    };
 
     componentDidMount() {
         if (this.props.drums)
             this.drums.map(drum => this.midiSounds.cacheDrum(drum));
         document.addEventListener("click", this.selectNote);
-        document.addEventListener("keydown", this.removeNotes);
+        if (this.props.editable)
+            document.addEventListener("keydown", this.removeNotes);
         document.addEventListener("keyup", this.updateShiftState);
         document.addEventListener("keydown", this.updateShiftState);
         this.props.timer.registerCallback(this.playNotes);
-        this.props.listeners[this.props.instrument] = this.receiveUpdate;
+        this.props.listeners[this.props.instrument] = this.receiveUpdate.bind(this);
     }
 
     componentWillUnmount() {
         document.removeEventListener("click", this.selectNote);
-        document.removeEventListener("keydown", this.removeNotes);
+        if (this.props.editable)
+            document.removeEventListener("keydown", this.removeNotes);
         document.removeEventListener("keyup", this.updateShiftState);
         document.removeEventListener("keydown", this.updateShiftState);
         this.props.timer.removeCallback(this.playNotes);
@@ -146,7 +157,8 @@ class Grid extends Component {
                     <div>
                         <div className="grid-empty"
                              style={{height: "calc(" + (this.props.drums ? 13 : 7 * 12) + " * " + this.props.cellHeight + ")"}}/>
-                        <GridBackground drums={this.props.drums} key="backGrid" xlen={this.props.xlen}
+                        <GridBackground editable={this.props.editable} drums={this.props.drums} key="backGrid"
+                                        xlen={this.props.xlen}
                                         ylen={this.props.drums ? 13 : 7 * 12} cellWidth={this.props.cellWidth}
                                         cellHeight={this.props.cellHeight} addNote={this.addNote}/>
                     </div>
@@ -158,7 +170,8 @@ class Grid extends Component {
                         height: "calc(" + (this.props.drums ? 13 : 7 * 12) + " * " + this.props.cellHeight + ")"
                     }}>
                         {this.state.notes.filter(note => note.x < this.props.timer._repeat).map(note => {
-                            return <Note key={Math.floor(Math.random() * 1000000)}
+                            return <Note editable={this.props.editable}
+                                         key={Math.floor(Math.random() * 1000000)}
                                          onClick={this.selectNote}
                                          cellHeight={this.props.cellHeight}
                                          cellWidth={this.props.cellWidth}

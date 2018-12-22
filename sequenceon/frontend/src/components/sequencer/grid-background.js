@@ -11,6 +11,12 @@ class GridBackground extends Component {
         return shallowEqual(this.props, nextProps, this.state, nextState);
     }
 
+    addNote = (j,i) => {
+        if (this.props.editable) {
+            this.props.addNote(j,i)
+        }
+    }
+
     render() {
         console.log("rendered background");
         let xarr = [];
@@ -28,7 +34,7 @@ class GridBackground extends Component {
                             <div key={i} className="grid-row" style={{ height: this.props.cellHeight }}>
                                 {xarr.map(j => {
                                     return (
-                                        <div key={j} onClick={ev => ev.preventDefault()} onDoubleClick={() => this.props.addNote(j, i)} style={{ width: this.props.cellWidth, height: this.props.cellHeight }} className={"grid-item back-cell" + ((j % 4) === 0 ? " measure" : "")} />
+                                        <div key={j} onClick={ev => ev.preventDefault()} onDoubleClick={() => this.addNote(j, i)} style={{ width: this.props.cellWidth, height: this.props.cellHeight }} className={"grid-item back-cell" + ((j % 4) === 0 ? " measure" : "")} />
                                     )
                                 })}
                             </div>

@@ -6,15 +6,34 @@ import json
 from .models import Sheet, Note
 
 
+def get_sheet(session):
+    return Sheet.objects.filter(id=session["sheet"]).first()
+
+
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
 
         # Join room group
+        if self.scope["session"].get("room", 0) != self.scope["session"]["song"]:
+            d = {
+                "username": self.scope["user"].username,
+                "instrument": get_sheet(self.scope["session"]).instrument,
+                "action": "join"
+            }
+            async_to_sync(self.channel_layer.group_send)(
+                str(self.scope["session"]["song"]),
+                {
+                    'type': 'chat_message',
+                    'message': json.dumps(d)
+                }
+            )
+            self.scope["session"]["room"] = self.scope["session"]["song"]
+            self.scope["session"].save()
+
         async_to_sync(self.channel_layer.group_add)(
             str(self.scope["session"]["song"]),
             self.channel_name
         )
-
         self.accept()
 
     def disconnect(self, close_code):
@@ -27,7 +46,7 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from WebSocket
     def receive(self, text_data):
         obj = json.loads(text_data)
-        sheet = Sheet.objects.filter(id=self.scope["session"]["sheet"]).first()
+        sheet = get_sheet(self.scope["session"])
         if obj["instrument"] == sheet.instrument:
             if obj["action"] == "add":
                 for note in obj["notes"]:
@@ -39,24 +58,24 @@ class ChatConsumer(WebsocketConsumer):
                     new_note.delete()
             elif obj["action"] == "change_length":
                 for note in obj["notes"]:
-                    new_note = None.objects.filter(time=note["x"], pitch=note["y"], sheet=sheet).first()
-                    new_note.length = note.length
+                    new_note = Note.objects.filter(time=note["x"], pitch=note["y"], sheet=sheet).first()
+                    new_note.length = note["length"]
                     new_note.save()
-        # Send message to room group
-        async_to_sync(self.channel_layer.group_send)(
-            str(self.scope["session"]["song"]),
-            {
-                'type': 'chat_message',
-                'message': text_data
-            }
-        )
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                str(self.scope["session"]["song"]),
+                {
+                    'type': 'chat_message',
+                    'message': text_data
+                }
+            )
 
     # Receive message from room group
     def chat_message(self, event):
         message = event['message']
         obj = json.loads(message)
-        sheet = Sheet.objects.filter(id = self.scope["session"]["sheet"]).first()
-        if sheet.instrument != obj["instrument"]:      
+        sheet = Sheet.objects.filter(id=self.scope["session"]["sheet"]).first()
+        if sheet.instrument != obj["instrument"]:
             # Send message to WebSocket
             self.send(text_data=json.dumps({
                 'message': message

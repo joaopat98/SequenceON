@@ -1,7 +1,11 @@
-from django.contrib.auth import authenticate, login
+from datetime import datetime, timedelta
+from random import choice
+
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import *
 
+from .decorators import require_login
 from .forms import *
 from .models import *
 
@@ -40,7 +44,12 @@ def login_view(request):
         return HttpResponseNotAllowed("Method not Allowed")
 
 
-@login_required
+@require_login
+def is_logged_in(request):
+    return HttpResponse()
+
+
+@require_login
 def join_room(request):
     if "room" in request.POST.keys():
         song = Song.objects.filter(id=int(request.POST["room"])).first()
@@ -54,13 +63,24 @@ def join_room(request):
 
         else:
             return HttpResponseNotFound()
+
+
+@require_login
+def createroom(request):
+    song = Song.objects.create()
+    return JsonResponse(song.id, safe=False)
+
+
+@require_login
+def random(request):
+    songs = list(map(lambda s: s.id, Song.objects.filter(created__gte=datetime.now() - timedelta(minutes=20))))
+    if len(songs) > 0:
+        return JsonResponse(choice(songs), safe=False)
     else:
-        song = Song.objects.create()
-        request.session["song"] = song.id
-        return JsonResponse({"songID": song.id, "available_instruments": instrumentLst})
+        return HttpResponseNotFound()
 
 
-@login_required
+@require_login
 def select_instrument(request):
     song = get_song(request)
     if song is not None:
@@ -69,10 +89,21 @@ def select_instrument(request):
         for inst in used:
             lst_copy.remove(inst)
         if "instrument" in request.POST.keys() and request.POST["instrument"] in lst_copy:
-            sheet = Sheet(instrument=request.POST["instrument"], song=get_song(request), user=request.user)
+            sheet = Sheet(instrument=request.POST["instrument"], song=song, user=request.user)
             sheet.save()
             request.session["sheet"] = sheet.id
-            return HttpResponse()
+            sheets = song.sheets.all()
+            notes = {}
+            for sheet in sheets:
+                notes[sheet.instrument] = list(map(lambda s: s.serialize(), sheet.notes.all()))
+            users = {}
+            for sheet in sheets:
+                users[sheet.instrument] = sheet.user.username
+            return JsonResponse(
+                {"instruments": list(map(lambda s: s.instrument, sheets)), "notes": notes, "users": users})
 
 
-
+@require_login
+def logout_view(request):
+    logout(request)
+    return HttpResponse()

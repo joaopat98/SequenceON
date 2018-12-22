@@ -17,14 +17,17 @@ class Register extends React.Component {
     }
 
     login = (ev) => {
-        window.location.assign("/");
+        window.location.assign("/login");
     }
     clickHandler = (ev) => {
         ev.preventDefault("api");
         let fd = new FormData();
         for(let elem in this.state)
             fd.append(elem, this.state[elem]);
-        Request.post("api/user/register", fd);
+        Request.post("api/user/register", fd).then(response => {
+            if (response.status === 200)
+                window.location.assign("/")
+        });
     }
 
     changeHandler = (ev) => {
@@ -56,14 +59,14 @@ class Register extends React.Component {
                                 <div id="box-margin-small"></div>
                                 <div className="row">
                                     <div className="col">
-                                        <input type="text" name="password1" placeholder="Password"
+                                        <input type="password" name="password1" placeholder="Password"
                                                value={this.state.password1} onChange={this.changeHandler}/>
                                     </div>
                                 </div>
                                 <div id="box-margin-small"></div>
                                 <div className="row">
                                     <div className="col">
-                                        <input type="text" name="password2" placeholder="Confirm Password"
+                                        <input type="password" name="password2" placeholder="Confirm Password"
                                                value={this.state.password2} onChange={this.changeHandler}/>
                                     </div>
                                 </div>

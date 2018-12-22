@@ -59,7 +59,7 @@ class Note extends Component {
                     style={{
                         width: "calc(" + this.props.cellWidth + " * " + this.state.length + ")",
                     }}>
-                    <div className="note-right" onMouseDown={this.onSize.bind(this)}></div>
+                    <div className="note-right" onMouseDown={this.props.editable ? this.onSize.bind(this) : undefined}/>
                 </div>
             </div>
         )

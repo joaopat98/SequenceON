@@ -1,0 +1,44 @@
+.container-m{
+    height: 100vh;
+}
+.col-left-m{
+background-color: #044181;
+}
+.col-right-m{
+
+}
+.top-m{
+    background-color: #f7a92c;
+}
+.bottom-m{
+    background-color: #f9c45d; 
+}
+.bottom-m:hover{
+    background-color: #f8d796; 
+    border-style:solid;
+    border-color: #044181;
+    border-width: 3px;
+}
+.top-m:hover{
+    background-color: #e48c00;
+    border-style:solid;
+    border-color: #044181;
+    border-width: 3px;
+}
+.col-left-m:hover{
+    background-color: #116ac8;
+    border-style:solid;
+    border-color: #f7a92c;
+    border-width: 3px;
+}
+.full-vertical {
+    height: 100vh;
+}
+.half-vertical{
+    height:50vh;
+}
+.reset-padding {
+    padding: 0;
+}
+
+

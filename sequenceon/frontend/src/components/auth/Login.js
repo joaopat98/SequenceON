@@ -23,7 +23,7 @@ class Login extends React.Component {
             fd.append(elem, this.state[elem]);
         Request.post("api/user/login", fd).then(response => {
                 if (response.status === 200)
-                    window.location.assign("/sequencer")
+                    window.location.assign("/")
             }
         );
     }
@@ -57,7 +57,7 @@ class Login extends React.Component {
                                 <div id="box-margin-small"/>
                                 <div className="row">
                                     <div className="col">
-                                        <input type="text" name="password" placeholder="Password"
+                                        <input type="password" name="password" placeholder="Password"
                                                value={this.state.password} onChange={this.changeHandler}/>
                                     </div>
                                 </div>
@@ -73,12 +73,6 @@ class Login extends React.Component {
                                     <div className="col-3">
                                         <small>
                                             <button type="button" onClick={this.register} className="btn">Register
-                                            </button>
-                                        </small>
-                                    </div>
-                                    <div className="col-3">
-                                        <small>
-                                            <button type="button" onClick={this.register} className="btn">Password
                                             </button>
                                         </small>
                                     </div>
