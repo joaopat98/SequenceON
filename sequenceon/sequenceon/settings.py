@@ -26,7 +26,7 @@ SECRET_KEY = 'vj-r@vtk@u)&$ci3i=di!&#j0_#bmw!%8*=xs$jh+2t^trm72z'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = [""]
+ALLOWED_HOSTS = ["https://sequenceon.herokuapp.com"]
 
 # Application definition
 
@@ -80,7 +80,7 @@ STATICFILES_DIRS = [
 WEBPACK_LOADER = {
     'DEFAULT': {
         'BUNDLE_DIR_NAME': 'bundles/',
-        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.dev.json'),
+        'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.prod.json'),
     }
 }
 
