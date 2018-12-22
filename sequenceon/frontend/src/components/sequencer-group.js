@@ -68,7 +68,7 @@ class SequencerGroup extends Component {
     componentDidMount() {
         if (this.props.online) {
             let protocol;
-            switch (location.protocol) {
+            switch (window.location.protocol) {
                 case "http:":
                     protocol = "ws:";
                     break;
