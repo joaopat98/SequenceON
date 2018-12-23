@@ -112,7 +112,7 @@ DATABASES = {
     }
 }
 
-db_from_env = django_heroku.dj_database_url.config(conn_max_age=10)
+db_from_env = django_heroku.dj_database_url.config()
 DATABASES['default'].update(db_from_env)
 
 # Password validation
