@@ -4,6 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import WebsocketConsumer
+from django.db import close_old_connections
 
 from .models import Sheet, Note
 
@@ -40,11 +41,12 @@ class ChatConsumer(WebsocketConsumer):
             str(self.scope["session"]["song"]),
             self.channel_name
         )
-
+        close_old_connections()
         self.accept()
 
     def disconnect(self, close_code):
         # Leave room group
+        close_old_connections()
         async_to_sync(self.channel_layer.group_discard)(
             str(self.scope["session"]["song"]),
             self.channel_name
@@ -56,6 +58,7 @@ class ChatConsumer(WebsocketConsumer):
         if obj["instrument"] == get_sheet_instrument(self.scope["session"]):
             self.save_changes(obj, self.scope["session"]["sheet"])
             # Send message to room group
+            close_old_connections()
             async_to_sync(self.channel_layer.group_send)(
                 str(self.scope["session"]["song"]),
                 {
@@ -86,6 +89,7 @@ class ChatConsumer(WebsocketConsumer):
         obj = json.loads(message)
         if get_sheet_instrument(self.scope["session"]) != obj["instrument"]:
             # Send message to WebSocket
+            close_old_connections()
             self.send(text_data=json.dumps({
                 'message': message
             }))
