@@ -1,8 +1,9 @@
 # chat/consumers.py
+import json
+
 from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
-from channels.generic.websocket import WebsocketConsumer
-import json
+from channels.generic.websocket import AsyncWebsocketConsumer
 
 from .models import Sheet, Note
 
@@ -12,8 +13,8 @@ def get_sheet(session):
     return Sheet.objects.filter(id=session["sheet"]).first()
 
 
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
 
         # Join room group
         if self.scope["session"].get("room", 0) != self.scope["session"]["song"]:
@@ -22,7 +23,7 @@ class ChatConsumer(WebsocketConsumer):
                 "instrument": get_sheet(self.scope["session"]).instrument,
                 "action": "join"
             }
-            async_to_sync(self.channel_layer.group_send)(
+            await self.channel_layer.group_send(
                 str(self.scope["session"]["song"]),
                 {
                     'type': 'chat_message',
@@ -37,30 +38,29 @@ class ChatConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        self.accept()
+        await self.accept()
 
-    def disconnect(self, close_code):
+    async def disconnect(self, close_code):
         # Leave room group
-        async_to_sync(self.channel_layer.group_discard)(
+        await self.channel_layer.group_discard(
             str(self.scope["session"]["song"]),
             self.channel_name
         )
 
     # Receive message from WebSocket
-    def receive(self, text_data):
+    async def receive(self, text_data):
         obj = json.loads(text_data)
         sheet = get_sheet(self.scope["session"])
         if obj["instrument"] == sheet.instrument:
             self.save_changes(obj, sheet)
             # Send message to room group
-            async_to_sync(self.channel_layer.group_send)(
+            await self.channel_layer.group_send(
                 str(self.scope["session"]["song"]),
                 {
                     'type': 'chat_message',
                     'message': text_data
                 }
             )
-
 
     @database_sync_to_async
     def save_changes(self, obj, sheet):
@@ -79,12 +79,12 @@ class ChatConsumer(WebsocketConsumer):
                 new_note.save()
 
     # Receive message from room group
-    def chat_message(self, event):
+    async def chat_message(self, event):
         message = event['message']
         obj = json.loads(message)
         sheet = get_sheet(self.scope["session"])
         if sheet.instrument != obj["instrument"]:
             # Send message to WebSocket
-            self.send(text_data=json.dumps({
+            await self.send(text_data=json.dumps({
                 'message': message
             }))
