@@ -3,6 +3,7 @@ from random import choice
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db import close_old_connections
 from django.http import *
 
 from .decorators import require_login
@@ -23,9 +24,12 @@ def register(request):
             user = user_form.save()
             user.is_active = True
             user.save()
+            close_old_connections()
             return HttpResponse()
+        close_old_connections()
         return HttpResponseBadRequest()
     else:
+        close_old_connections()
         return HttpResponseNotAllowed("Method not Allowed")
 
 
@@ -34,18 +38,23 @@ def login_view(request):
         try:
             user = authenticate(username=request.POST["username"], password=request.POST["password"])
         except KeyError as k:
+            close_old_connections()
             return JsonResponse({k.args[0]: "field missing in form"}, status=400)
         if user is not None:
             login(request, user)
+            close_old_connections()
             return HttpResponse()
         else:
+            close_old_connections()
             return HttpResponseNotFound()
     else:
+        close_old_connections()
         return HttpResponseNotAllowed("Method not Allowed")
 
 
 @require_login
 def is_logged_in(request):
+    close_old_connections()
     return HttpResponse()
 
 
@@ -59,15 +68,18 @@ def join_room(request):
             used = map(lambda sheet: sheet.instrument, Sheet.objects.filter(song=song))
             for inst in used:
                 lst_copy.remove(inst)
+            close_old_connections()
             return JsonResponse({"available_instruments": lst_copy}, safe=False)
 
         else:
+            close_old_connections()
             return HttpResponseNotFound()
 
 
 @require_login
 def createroom(request):
     song = Song.objects.create()
+    close_old_connections()
     return JsonResponse(song.id, safe=False)
 
 
@@ -75,8 +87,10 @@ def createroom(request):
 def random(request):
     songs = list(map(lambda s: s.id, Song.objects.filter(created__gte=datetime.now() - timedelta(minutes=20))))
     if len(songs) > 0:
+        close_old_connections()
         return JsonResponse(choice(songs), safe=False)
     else:
+        close_old_connections()
         return HttpResponseNotFound()
 
 
@@ -99,6 +113,7 @@ def select_instrument(request):
             users = {}
             for sheet in sheets:
                 users[sheet.instrument] = sheet.user.username
+            close_old_connections()
             return JsonResponse(
                 {"instruments": list(map(lambda s: s.instrument, sheets)), "notes": notes, "users": users})
 
@@ -106,4 +121,5 @@ def select_instrument(request):
 @require_login
 def logout_view(request):
     logout(request)
+    close_old_connections()
     return HttpResponse()
