@@ -25,7 +25,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if self.scope["session"].get("room", 0) != self.scope["session"]["song"]:
             d = {
                 "username": self.scope["user"].username,
-                "instrument": get_sheet_instrument(self.scope["session"]),
+                "instrument": await get_sheet_instrument(self.scope["session"]),
                 "action": "join"
             }
             await self.channel_layer.group_send(
@@ -56,7 +56,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         obj = json.loads(text_data)
         if obj["instrument"] == get_sheet_instrument(self.scope["session"]):
-            self.save_changes(obj, self.scope["session"]["sheet"])
+            await self.save_changes(obj, self.scope["session"]["sheet"])
             # Send message to room group
             await self.channel_layer.group_send(
                 str(self.scope["session"]["song"]),
@@ -87,7 +87,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         message = event['message']
         obj = json.loads(message)
-        if get_sheet_instrument(self.scope["session"]) != obj["instrument"]:
+        if await get_sheet_instrument(self.scope["session"]) != obj["instrument"]:
             # Send message to WebSocket
             await self.send(text_data=json.dumps({
                 'message': message
