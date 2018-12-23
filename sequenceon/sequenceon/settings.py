@@ -84,7 +84,6 @@ WEBPACK_LOADER = {
     }
 }
 
-WSGI_APPLICATION = 'sequenceon.wsgi.application'
 ASGI_APPLICATION = 'sequenceon.routing.application'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
