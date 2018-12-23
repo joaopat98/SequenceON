@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from random import choice
 
-from channels.db import database_sync_to_async
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import *
@@ -17,7 +16,6 @@ def get_song(request):
     return Song.objects.filter(id=int(request.session["song"])).first()
 
 
-@database_sync_to_async
 def register(request):
     if request.method == "POST":
         user_form = UserCreationForm(request.POST)
@@ -31,7 +29,6 @@ def register(request):
         return HttpResponseNotAllowed("Method not Allowed")
 
 
-@database_sync_to_async
 def login_view(request):
     if request.method == "POST":
         try:
@@ -48,13 +45,11 @@ def login_view(request):
 
 
 @require_login
-@database_sync_to_async
 def is_logged_in(request):
     return HttpResponse()
 
 
 @require_login
-@database_sync_to_async
 def join_room(request):
     if "room" in request.POST.keys():
         song = Song.objects.filter(id=int(request.POST["room"])).first()
@@ -71,14 +66,12 @@ def join_room(request):
 
 
 @require_login
-@database_sync_to_async
 def createroom(request):
     song = Song.objects.create()
     return JsonResponse(song.id, safe=False)
 
 
 @require_login
-@database_sync_to_async
 def random(request):
     songs = list(map(lambda s: s.id, Song.objects.filter(created__gte=datetime.now() - timedelta(minutes=20))))
     if len(songs) > 0:
@@ -88,7 +81,6 @@ def random(request):
 
 
 @require_login
-@database_sync_to_async
 def select_instrument(request):
     song = get_song(request)
     if song is not None:
@@ -112,7 +104,6 @@ def select_instrument(request):
 
 
 @require_login
-@database_sync_to_async
 def logout_view(request):
     logout(request)
     return HttpResponse()
