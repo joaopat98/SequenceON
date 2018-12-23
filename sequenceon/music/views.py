@@ -14,10 +14,12 @@ instrumentLst = ["Drums", "Bass", "Piano", "Guitar", "Electric Guitar"]
 
 
 def get_song(request):
+    close_old_connections()
     return Song.objects.filter(id=int(request.session["song"])).first()
 
 
 def register(request):
+    close_old_connections()
     if request.method == "POST":
         user_form = UserCreationForm(request.POST)
         if user_form.is_valid():
@@ -34,6 +36,7 @@ def register(request):
 
 
 def login_view(request):
+    close_old_connections()
     if request.method == "POST":
         try:
             user = authenticate(username=request.POST["username"], password=request.POST["password"])
@@ -55,11 +58,13 @@ def login_view(request):
 @require_login
 def is_logged_in(request):
     close_old_connections()
+    close_old_connections()
     return HttpResponse()
 
 
 @require_login
 def join_room(request):
+    close_old_connections()
     if "room" in request.POST.keys():
         song = Song.objects.filter(id=int(request.POST["room"])).first()
         if song is not None:
@@ -78,6 +83,7 @@ def join_room(request):
 
 @require_login
 def createroom(request):
+    close_old_connections()
     song = Song.objects.create()
     close_old_connections()
     return JsonResponse(song.id, safe=False)
@@ -85,6 +91,7 @@ def createroom(request):
 
 @require_login
 def random(request):
+    close_old_connections()
     songs = list(map(lambda s: s.id, Song.objects.filter(created__gte=datetime.now() - timedelta(minutes=20))))
     if len(songs) > 0:
         close_old_connections()
@@ -96,6 +103,7 @@ def random(request):
 
 @require_login
 def select_instrument(request):
+    close_old_connections()
     song = get_song(request)
     if song is not None:
         lst_copy = instrumentLst[:]
@@ -120,6 +128,7 @@ def select_instrument(request):
 
 @require_login
 def logout_view(request):
+    close_old_connections()
     logout(request)
     close_old_connections()
     return HttpResponse()
