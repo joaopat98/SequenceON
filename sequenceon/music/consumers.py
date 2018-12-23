@@ -13,6 +13,11 @@ def get_sheet(session):
     return Sheet.objects.filter(id=session["sheet"]).first()
 
 
+@database_sync_to_async
+def get_sheet_instrument(session):
+    return Sheet.objects.filter(id=session["sheet"]).first().instrument
+
+
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
 
@@ -20,7 +25,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if self.scope["session"].get("room", 0) != self.scope["session"]["song"]:
             d = {
                 "username": self.scope["user"].username,
-                "instrument": get_sheet(self.scope["session"]).instrument,
+                "instrument": get_sheet_instrument(self.scope["session"]),
                 "action": "join"
             }
             await self.channel_layer.group_send(
@@ -50,9 +55,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         obj = json.loads(text_data)
-        sheet = get_sheet(self.scope["session"])
-        if obj["instrument"] == sheet.instrument:
-            self.save_changes(obj, sheet)
+        if obj["instrument"] == get_sheet_instrument(self.scope["session"]):
+            self.save_changes(obj, self.scope["session"]["sheet"])
             # Send message to room group
             await self.channel_layer.group_send(
                 str(self.scope["session"]["song"]),
@@ -63,7 +67,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
     @database_sync_to_async
-    def save_changes(self, obj, sheet):
+    def save_changes(self, obj, sheet_id):
+        sheet = Sheet.objects.filter(id=sheet_id)
         if obj["action"] == "add":
             for note in obj["notes"]:
                 new_note = Note(time=note["x"], pitch=note["y"], length=note["length"], sheet=sheet)
@@ -82,8 +87,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         message = event['message']
         obj = json.loads(message)
-        sheet = get_sheet(self.scope["session"])
-        if sheet.instrument != obj["instrument"]:
+        if get_sheet_instrument(self.scope["session"]) != obj["instrument"]:
             # Send message to WebSocket
             await self.send(text_data=json.dumps({
                 'message': message
