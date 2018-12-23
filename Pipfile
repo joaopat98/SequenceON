@@ -13,6 +13,7 @@ channels = "*"
 channels-redis = "*"
 django-heroku = "*"
 gunicorn = "*"
+uvicorn = "*"
 whitenoise = "*"
 dj-database-url = "*"
 
