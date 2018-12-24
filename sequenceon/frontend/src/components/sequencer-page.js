@@ -7,8 +7,9 @@ class SequencerPage extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            ready: false,
             offline: false,
-            available: []
+            available_instruments: []
         }
     }
 
@@ -35,9 +36,8 @@ class SequencerPage extends Component {
             fd.append("room", room);
             Request.post("api/joinroom", fd).then(response => {
                 response.json().then(data => {
-                    this.setState({
-                        available: data.available_instruments
-                    })
+                    data.ready = true;
+                    this.setState(data)
                 })
             })
         } else
@@ -50,19 +50,21 @@ class SequencerPage extends Component {
     }
 
     render() {
-        if (this.state.instrument !== undefined) {
-            return (
-                <SequencerGroup instrument={this.state.instrument}
-                                notes={this.state.notes}
-                                users={this.state.users}
-                                online={!this.state.offline}
-                />
-            )
-        } else {
-            return (
-                <Group available={this.state.available} selectInstrument={this.selectInstrument}/>
-            )
-        }
+        if (this.state.ready || this.state.offline) {
+            if (this.state.instrument !== undefined) {
+                return (
+                    <SequencerGroup instrument={this.state.instrument}
+                                    notes={this.state.notes}
+                                    users={this.state.users}
+                                    online={!this.state.offline}
+                    />
+                )
+            } else {
+                return (
+                    <Group available={this.state.available_instruments} selectInstrument={this.selectInstrument}/>
+                )
+            }
+        } else return null;
     }
 
 }

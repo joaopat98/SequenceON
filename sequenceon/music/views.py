@@ -2,8 +2,6 @@ from datetime import datetime, timedelta
 from random import choice
 
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.db import close_old_connections
 from django.http import *
 
 from .decorators import require_login
@@ -69,12 +67,31 @@ def join_room(request):
         song = Song.objects.filter(id=int(request.POST["room"])).first()
         if song is not None:
             request.session["song"] = song.id
-            lst_copy = instrumentLst[:]
-            used = map(lambda sheet: sheet.instrument, Sheet.objects.filter(song=song))
-            for inst in used:
-                lst_copy.remove(inst)
-            close_old_connections()
-            return JsonResponse({"available_instruments": lst_copy}, safe=False)
+            sheet = song.sheets.filter(user=request.user).first()
+            if sheet is not None:
+                request.session["sheet"] = sheet.id
+                request.session["joined"] = True
+                sheets = song.sheets.all()
+                notes = {}
+                for song_sheet in sheets:
+                    notes[song_sheet.instrument] = list(map(lambda s: s.serialize(), song_sheet.notes.all()))
+                users = {}
+                for song_sheet in sheets:
+                    users[song_sheet.instrument] = song_sheet.user.username
+                return JsonResponse(
+                    {
+                        "instruments": list(map(lambda s: s.instrument, sheets)),
+                        "notes": notes,
+                        "users": users,
+                        "instrument": sheet.instrument
+                    })
+            else:
+                request.session["joined"] = False
+                lst_copy = instrumentLst[:]
+                used = map(lambda s: s.instrument, Sheet.objects.filter(song=song))
+                for inst in used:
+                    lst_copy.remove(inst)
+                return JsonResponse({"available_instruments": lst_copy}, safe=False)
 
         else:
             close_old_connections()
@@ -114,6 +131,7 @@ def select_instrument(request):
             sheet = Sheet(instrument=request.POST["instrument"], song=song, user=request.user)
             sheet.save()
             request.session["sheet"] = sheet.id
+            request.session["joined"] = False
             sheets = song.sheets.all()
             notes = {}
             for sheet in sheets:
