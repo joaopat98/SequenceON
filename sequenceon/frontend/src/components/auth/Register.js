@@ -26,7 +26,7 @@ class Register extends React.Component {
             fd.append(elem, this.state[elem]);
         Request.post("api/user/register", fd).then(response => {
             if (response.status === 200)
-                window.location.assign("/")
+                window.location.assign("/login")
         });
     }
 

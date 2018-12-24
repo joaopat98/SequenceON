@@ -67,8 +67,16 @@ class SequencerGroup extends Component {
 
     componentDidMount() {
         if (this.props.online) {
+            let protocol;
+            switch (window.location.protocol) {
+                case "http:":
+                    protocol = "ws:";
+                    break;
+                case "https:":
+                    protocol = "wss:";
+            }
             this.chatSocket = new WebSocket(
-                'ws://' + window.location.host +
+                protocol +'//' + window.location.host +
                 '/ws/group');
 
 

@@ -11,7 +11,11 @@ django-webpack-loader = "*"
 pillow = "*"
 channels = "*"
 channels-redis = "*"
-responses = "*"
+django-heroku = "*"
+gunicorn = "*"
+uvicorn = "*"
+whitenoise = "*"
+dj-database-url = "*"
 
 [dev-packages]
 

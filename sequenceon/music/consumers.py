@@ -14,7 +14,7 @@ class ChatConsumer(WebsocketConsumer):
     def connect(self):
 
         # Join room group
-        if self.scope["session"].get("room", 0) != self.scope["session"]["song"]:
+        if not self.scope["session"].get("joined", False):
             d = {
                 "username": self.scope["user"].username,
                 "instrument": get_sheet(self.scope["session"]).instrument,
@@ -27,7 +27,7 @@ class ChatConsumer(WebsocketConsumer):
                     'message': json.dumps(d)
                 }
             )
-            self.scope["session"]["room"] = self.scope["session"]["song"]
+            self.scope["session"]["joined"] = True
             self.scope["session"].save()
 
         async_to_sync(self.channel_layer.group_add)(
@@ -38,6 +38,8 @@ class ChatConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         # Leave room group
+        self.scope["session"]["joined"] = False
+        self.scope["session"].save()
         async_to_sync(self.channel_layer.group_discard)(
             str(self.scope["session"]["song"]),
             self.channel_name
