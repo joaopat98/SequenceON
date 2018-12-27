@@ -7,12 +7,12 @@ import TimeLine from "./sequencer/timeline"
 class SequencerGroup extends Component {
     constructor(props) {
         super(props);
-        this.timer = new Timer(140, 32);
+        this.timer = new Timer(140, this.props.length);
         this.timer.start();
         this.listeners = {};
         this.notes = this.props.notes;
         this.state = {
-            xlen: 32,
+            xlen: this.props.length,
             selectedInstrument: this.props.instrument,
             users: this.props.users,
             solo: undefined
@@ -65,6 +65,27 @@ class SequencerGroup extends Component {
         this.setState({solo: this.state.solo === instrument ? undefined : instrument});
     }
 
+    copyToClipboard = str => {
+        const el = document.createElement('textarea');
+        el.value = str;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+    };
+
+    copyLink = () => {
+        this.copyToClipboard(window.location.href);
+        alert("Shareable link copied to clipboard!");
+    }
+
+    warnLen = len => {
+        if (len !== undefined) {
+            let data = {instrument: this.props.instrument, action: "length", length: len};
+            this.chatSocket.send(JSON.stringify(data));
+        }
+    }
+
     componentDidMount() {
         if (this.props.online) {
             let protocol;
@@ -76,7 +97,7 @@ class SequencerGroup extends Component {
                     protocol = "wss:";
             }
             this.chatSocket = new WebSocket(
-                protocol +'//' + window.location.host +
+                protocol + '//' + window.location.host +
                 '/ws/group');
 
 
@@ -110,6 +131,9 @@ class SequencerGroup extends Component {
                             let j = changing.findIndex(note => (note.x === note.x && note.y === change.y));
                             changing[j].length = change.length;
                         }
+                        break;
+                    case "length":
+                        this.changeTimer(undefined, data.length);
                         break;
                     case "join":
                         this.notes[data.instrument] = [];
@@ -171,6 +195,8 @@ class SequencerGroup extends Component {
                                    timer={this.timer} show={false}/>
                     ))}
                 </div>
+                <br/>
+                {this.props.online ? <button onClick={this.copyLink}>Shareable link</button> : null}
                 <div className="main-sequencer">
                     <Sequencer changeLen={this.changeLen}
                                editable={this.state.selectedInstrument === this.props.instrument || !this.props.online}
@@ -184,7 +210,7 @@ class SequencerGroup extends Component {
                                select={this.selectSequencer} setSolo={this.setSolo} solo={this.state.solo}
                                timer={this.timer} show={true}/>
                 </div>
-                <TimeLine timer={this.timer} changeTimer={this.changeTimer}/>
+                <TimeLine warnLen={this.warnLen} timer={this.timer} changeTimer={this.changeTimer}/>
 
             </div>
         )

@@ -1,5 +1,5 @@
 import React from 'react';
-import './register.css';
+import './login.css';
 import logo from './images/sequenceON.png';
 import Request from "../../request";
 
@@ -13,6 +13,7 @@ class Register extends React.Component {
             password1: "",
             password2: "",
             email: "",
+            errors: {}
         });
     }
 
@@ -22,11 +23,16 @@ class Register extends React.Component {
     clickHandler = (ev) => {
         ev.preventDefault("api");
         let fd = new FormData();
-        for(let elem in this.state)
+        for (let elem in this.state)
             fd.append(elem, this.state[elem]);
         Request.post("api/user/register", fd).then(response => {
             if (response.status === 200)
                 window.location.assign("/login")
+            else if (response.status === 400) {
+                response.json().then(errors => {
+                    this.setState({errors: errors});
+                });
+            }
         });
     }
 
@@ -56,6 +62,13 @@ class Register extends React.Component {
                                                value={this.state.username} onChange={this.changeHandler}/>
                                     </div>
                                 </div>
+                                {this.state.errors.username !== undefined ? (
+                                    <div className="row">
+                                        <div className="col">
+                                            <p>{this.state.errors.username}</p>
+                                        </div>
+                                    </div>
+                                ) : null}
                                 <div id="box-margin-small"></div>
                                 <div className="row">
                                     <div className="col">
@@ -63,6 +76,13 @@ class Register extends React.Component {
                                                value={this.state.password1} onChange={this.changeHandler}/>
                                     </div>
                                 </div>
+                                {this.state.errors.password1 !== undefined ? (
+                                    <div className="row">
+                                        <div className="col">
+                                            <p>{this.state.errors.password1}</p>
+                                        </div>
+                                    </div>
+                                ) : null}
                                 <div id="box-margin-small"></div>
                                 <div className="row">
                                     <div className="col">
@@ -70,6 +90,13 @@ class Register extends React.Component {
                                                value={this.state.password2} onChange={this.changeHandler}/>
                                     </div>
                                 </div>
+                                {this.state.errors.password2 !== undefined ? (
+                                    <div className="row">
+                                        <div className="col">
+                                            <p>{this.state.errors.password2}</p>
+                                        </div>
+                                    </div>
+                                ) : null}
                                 <div id="box-margin-small"></div>
                                 <div className="row">
                                     <div className="col">

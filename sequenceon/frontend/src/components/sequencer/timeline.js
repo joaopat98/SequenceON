@@ -24,6 +24,7 @@ class TimeLine extends Component {
     }
 
     setParams = () => {
+        this.props.warnLen(this.state.length);
         this.props.changeTimer(this.state.bpm, this.state.length);
     }
 
