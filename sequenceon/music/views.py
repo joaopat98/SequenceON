@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from random import choice
 
 from django.contrib.auth import authenticate, login, logout
+from django.forms import ModelForm
 from django.http import *
 
 from .decorators import require_login
@@ -9,6 +10,20 @@ from .forms import *
 from .models import *
 
 instrumentLst = ["Drums", "Bass", "Piano", "Guitar", "Electric Guitar"]
+
+
+def error_dict(*args):
+    final = dict()
+    for item in args:
+        if item is not None:
+            if issubclass(type(item), ModelForm):
+                errors = dict()
+                for error in item.errors.keys():
+                    errors[error] = item.errors[error][0]
+                final = {**final, **errors}
+            else:
+                final = {**final, **item}
+    return final
 
 
 def get_song(request):
@@ -23,7 +38,7 @@ def register(request):
             user.is_active = True
             user.save()
             return HttpResponse()
-        return HttpResponseBadRequest()
+        return JsonResponse(error_dict(user_form.errors), status=400)
     else:
         return HttpResponseNotAllowed("Method not Allowed")
 
@@ -70,7 +85,8 @@ def join_room(request):
                         "instruments": list(map(lambda s: s.instrument, sheets)),
                         "notes": notes,
                         "users": users,
-                        "instrument": sheet.instrument
+                        "instrument": sheet.instrument,
+                        "length": song.length
                     })
             else:
                 request.session["joined"] = False
@@ -120,7 +136,9 @@ def select_instrument(request):
             for sheet in sheets:
                 users[sheet.instrument] = sheet.user.username
             return JsonResponse(
-                {"instruments": list(map(lambda s: s.instrument, sheets)), "notes": notes, "users": users})
+                {"instrument": request.POST["instrument"], "instruments": list(map(lambda s: s.instrument, sheets)),
+                 "notes": notes, "users": users,
+                 "length": song.length})
 
 
 @require_login

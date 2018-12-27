@@ -10,6 +10,7 @@ class Login extends React.Component {
         this.state = ({
             username: "",
             password: "",
+            errors: {},
         });
     }
 
@@ -24,6 +25,14 @@ class Login extends React.Component {
         Request.post("api/user/login", fd).then(response => {
                 if (response.status === 200)
                     window.location.assign("/")
+                else if (response.status === 400) {
+                    response.json().then(errors => {
+                        this.setState({errors: errors});
+                    });
+                }
+                else if (response.status === 404) {
+                    this.setState({errors: {password: "No user with such username/password combination"}})
+                }
             }
         );
     }
@@ -40,42 +49,57 @@ class Login extends React.Component {
             <div className="container-fluid loginContainer">
                 <div className="row" align="center">
                     <div className="col my-auto">
-                        <img type='image' id="img" src={logo}/>
+                        <img type='image' id="img" src={logo}></img>
                     </div>
                 </div>
                 <div className="row" align="center">
                     <div className="col my-auto">
                         <form>
                             <div id="login-box">
-                                <div id="box-margin"/>
+                                <div id="box-margin"></div>
                                 <div className="row">
                                     <div className="col">
                                         <input type="text" name="username" placeholder="Username"
                                                value={this.state.username} onChange={this.changeHandler}/>
                                     </div>
                                 </div>
-                                <div id="box-margin-small"/>
+                                {this.state.errors.username !== undefined ? (
+                                    <div className="row">
+                                        <div className="col">
+                                            <p>{this.state.errors.username}</p>
+                                        </div>
+                                    </div>
+                                ) : null}
+                                <div id="box-margin-small"></div>
                                 <div className="row">
                                     <div className="col">
                                         <input type="password" name="password" placeholder="Password"
                                                value={this.state.password} onChange={this.changeHandler}/>
                                     </div>
                                 </div>
-                                <div id="box-margin-small"/>
+                                {this.state.errors.password !== undefined ? (
+                                    <div className="row">
+                                        <div className="col">
+                                            <p>{this.state.errors.password}</p>
+                                        </div>
+                                    </div>
+                                ) : null}
+                                <div id="box-margin-small"></div>
                                 <div className="row">
                                     <div className="col">
                                         <button type="submit" onClick={this.clickHandler} className="button">LOGIN
                                         </button>
                                     </div>
                                 </div>
-                                <div className="row">
-                                    <div className="col-3"/>
-                                    <div className="col-3">
+                                <div className="row margin-btn"/>
+                                <div className="row" align="center">
+                                    <div className="col my-auto">
                                         <small>
-                                            <button type="button" onClick={this.register} className="btn">Register
+                                            <button type="button" onClick={this.register} className="btn">register
                                             </button>
                                         </small>
                                     </div>
+
                                 </div>
                             </div>
                         </form>

@@ -18,11 +18,7 @@ class SequencerPage extends Component {
         fd.append("instrument", instrument);
         Request.post("api/selectinstrument", fd).then(response => {
                 response.json().then(data => {
-                    this.setState({
-                        instrument: instrument,
-                        notes: data.notes,
-                        users: data.users
-                    });
+                    this.setState(data);
                 })
             }
         );
@@ -45,6 +41,7 @@ class SequencerPage extends Component {
                 offline: true,
                 users: {"Drums": "", "Bass": "", "Piano": "", "Guitar": "", "Electric Guitar": ""},
                 notes: {"Drums": [], "Bass": [], "Piano": [], "Guitar": [], "Electric Guitar": []},
+                length: 64,
                 instrument: "Drums"
             });
     }
@@ -57,6 +54,7 @@ class SequencerPage extends Component {
                                     notes={this.state.notes}
                                     users={this.state.users}
                                     online={!this.state.offline}
+                                    length={this.state.length}
                     />
                 )
             } else {
