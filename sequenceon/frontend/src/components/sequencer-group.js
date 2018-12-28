@@ -80,7 +80,7 @@ class SequencerGroup extends Component {
     }
 
     warnLen = len => {
-        if (len !== undefined) {
+        if (len !== undefined && this.props.online) {
             let data = {instrument: this.props.instrument, action: "length", length: len};
             this.chatSocket.send(JSON.stringify(data));
         }
