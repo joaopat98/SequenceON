@@ -15,6 +15,9 @@ class LandingPage extends React.Component {
     login = (ev) => {
         window.location.assign("/login");
     }
+    menu = (ev) => {
+        window.location.assign("/");
+    }
 
     render() {
         return (
@@ -30,8 +33,15 @@ class LandingPage extends React.Component {
                             <div className="row" align="center">
                                 <div className="col">
                                     <h1>Make Music Together. Online</h1>
-                                    <button onClick={this.register} className="btn-landing">Create Account</button>
-                                    <button onClick={this.login} className="btn-landing">Login</button>
+                                    {!this.props.logedin ?
+                                        <button onClick={this.register} className="btn-landing">Create Account</button>
+                                        : null}
+                                    {!this.props.logedin ?
+                                        <button onClick={this.login} className="btn-landing">Login</button>
+                                        : null}
+                                    {this.props.logedin ?
+                                        <button onClick={this.menu} className="btn-landing">Start Making Music!</button>
+                                        : null}
                                 </div>
                             </div>
                         </div>

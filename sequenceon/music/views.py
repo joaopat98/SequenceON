@@ -86,7 +86,8 @@ def join_room(request):
                         "notes": notes,
                         "users": users,
                         "instrument": sheet.instrument,
-                        "length": song.length
+                        "length": song.length,
+                        "song": song.id
                     })
             else:
                 request.session["joined"] = False
@@ -136,9 +137,13 @@ def select_instrument(request):
             for sheet in sheets:
                 users[sheet.instrument] = sheet.user.username
             return JsonResponse(
-                {"instrument": request.POST["instrument"], "instruments": list(map(lambda s: s.instrument, sheets)),
-                 "notes": notes, "users": users,
-                 "length": song.length})
+                {
+                    "instrument": request.POST["instrument"],
+                    "instruments": list(map(lambda s: s.instrument, sheets)),
+                    "notes": notes, "users": users,
+                    "length": song.length,
+                    "song": song.id
+                })
 
 
 @require_login

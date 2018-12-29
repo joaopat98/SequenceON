@@ -1,5 +1,4 @@
 .sequencer-window {
-  user-select: none;
   background-image: linear-gradient(#386ca3,#044181 40%);
   height: 100vh;
   width: 100vw;
@@ -362,4 +361,14 @@
   position: absolute;
   height: 100%;
   width: 2px;
+}
+
+.file-btn {
+  background-color: lightgrey;
+  border: solid 1px black;
+  padding: 2px 4px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 2vh;
+  cursor: pointer;
 }
