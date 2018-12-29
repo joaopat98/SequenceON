@@ -24,26 +24,41 @@ class SequencerGroup extends Component {
         if ('files' in input && input.files.length > 0) {
             this.readFileContent(input.files[0]).then(content => {
                 console.log(this.notes);
-                this.notes = JSON.parse(content);
+                let data = JSON.parse(content);
+                this.notes = data.notes;
                 this.forceUpdate();
+                this.changeTimer(undefined, data.length);
             }).catch(error => console.log(error));
         }
     }
 
     readFileContent(file) {
-        const reader = new FileReader()
+        const reader = new FileReader();
         return new Promise((resolve, reject) => {
-            reader.onload = event => resolve(event.target.result)
-            reader.onerror = error => reject(error)
+            reader.onload = event => resolve(event.target.result);
+            reader.onerror = error => reject(error);
             reader.readAsText(file)
         })
     }
 
     download = () => {
+        let notes = Object.assign({
+            "Drums": [],
+            "Bass": [],
+            "Piano": [],
+            "Guitar": [],
+            "Electric Guitar": []
+        }, this.notes);
+        let data = {
+            notes: notes,
+            length: this.state.xlen
+        };
         var a = document.createElement("a");
-        var file = new Blob([JSON.stringify(this.notes)], {type: "application/json"});
+        var file = new Blob([JSON.stringify(data)], {type: "application/json"});
         a.href = URL.createObjectURL(file);
-        a.download = "notes.json";
+        let filename = "Song " + this.props.song + ", " + (new Date()).toLocaleString() + ".json";
+        console.log(filename);
+        a.download = filename.replace(/:/g,"-").replace(/\//g,"-");
         a.click();
     }
 
@@ -195,8 +210,21 @@ class SequencerGroup extends Component {
                                    timer={this.timer} show={false}/>
                     ))}
                 </div>
-                <br/>
-                {this.props.online ? <button onClick={this.copyLink}>Shareable link</button> : null}
+                {this.props.online ? (
+                    <div>
+                        <br/>
+                        <button onClick={this.copyLink}>Shareable link</button>
+                        <br/>
+                        <button onClick={this.download}>Download copy</button>
+                    </div>
+                ) : null}
+                {!this.props.online ? (
+                    <div>
+                        <label htmlFor="filebtn" className="file-btn">Load Song</label>
+                        <input id="filebtn" onChange={this.loadNotes} style={{visibility: "hidden"}} type="file"
+                               accept="application/json"/>
+                    </div>
+                ) : null}
                 <div className="main-sequencer">
                     <Sequencer changeLen={this.changeLen}
                                editable={this.state.selectedInstrument === this.props.instrument || !this.props.online}

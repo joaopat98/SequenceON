@@ -9,7 +9,8 @@ class SequencerPage extends Component {
         this.state = {
             ready: false,
             offline: false,
-            available_instruments: []
+            available_instruments: [],
+            sidebarOpen: false
         }
     }
 
@@ -23,6 +24,10 @@ class SequencerPage extends Component {
             }
         );
     };
+
+    onSetSidebarOpen(open) {
+        this.setState({sidebarOpen: open});
+    }
 
     componentDidMount() {
         let query = new URLSearchParams(window.location.search);
@@ -49,20 +54,22 @@ class SequencerPage extends Component {
     render() {
         if (this.state.ready || this.state.offline) {
             if (this.state.instrument !== undefined) {
+
                 return (
                     <SequencerGroup instrument={this.state.instrument}
                                     notes={this.state.notes}
                                     users={this.state.users}
                                     online={!this.state.offline}
                                     length={this.state.length}
+                                    song={this.state.song}
                     />
                 )
-            } else {
-                return (
-                    <Group available={this.state.available_instruments} selectInstrument={this.selectInstrument}/>
-                )
-            }
-        } else return null;
+            } else return (
+                <Group available={this.state.available_instruments}
+                       selectInstrument={this.selectInstrument}/>
+            );
+        } else
+            return null;
     }
 
 }

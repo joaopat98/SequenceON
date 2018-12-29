@@ -1,0 +1,28 @@
+.menu-btn {
+    position: fixed;
+    top: 1vh;
+    right: 1vh;
+    font-size: 4vh;
+    animation: notice 2s infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 4vh;
+    height: 4vh;
+}
+
+.menu-btn:hover {
+    animation: none;
+}
+
+@keyframes notice {
+    0% {
+        font-size: 3vh;
+    }
+    50% {
+        font-size: 4vh;
+    }
+    100% {
+        font-size: 3vh;
+    }
+}

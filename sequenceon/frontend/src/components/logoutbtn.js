@@ -4,9 +4,6 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import "./signout.css"
 
 class LogoutBtn extends React.Component {
-    logout = ev => {
-        Request.post("api/user/logout", new FormData).then(() => window.location.assign("/login"))
-    }
 
     render() {
         return (
