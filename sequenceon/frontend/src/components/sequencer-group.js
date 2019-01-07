@@ -210,21 +210,6 @@ class SequencerGroup extends Component {
                                    timer={this.timer} show={false}/>
                     ))}
                 </div>
-                {this.props.online ? (
-                    <div>
-                        <br/>
-                        <button onClick={this.copyLink}>Shareable link</button>
-                        <br/>
-                        <button onClick={this.download}>Download copy</button>
-                    </div>
-                ) : null}
-                {!this.props.online ? (
-                    <div>
-                        <label htmlFor="filebtn" className="file-btn">Load Song</label>
-                        <input id="filebtn" onChange={this.loadNotes} style={{visibility: "hidden"}} type="file"
-                               accept="application/json"/>
-                    </div>
-                ) : null}
                 <div className="main-sequencer">
                     <Sequencer changeLen={this.changeLen}
                                editable={this.state.selectedInstrument === this.props.instrument || !this.props.online}
@@ -238,6 +223,21 @@ class SequencerGroup extends Component {
                                select={this.selectSequencer} setSolo={this.setSolo} solo={this.state.solo}
                                timer={this.timer} show={true}/>
                 </div>
+                {this.props.online ? (
+                    <div className="option-buttons">
+                        <br/>
+                        <button onClick={this.copyLink}>Shareable link</button>
+                        <br/>
+                        <button onClick={this.download}>Download copy</button>
+                    </div>
+                ) : null}
+                {!this.props.online ? (
+                    <div className="option-buttons">
+                        <label htmlFor="filebtn" className="file-btn">Load Song</label>
+                        <input id="filebtn" onChange={this.loadNotes} style={{visibility: "hidden"}} type="file"
+                               accept="application/json"/>
+                    </div>
+                ) : null}
                 <TimeLine warnLen={this.warnLen} timer={this.timer} changeTimer={this.changeTimer}/>
 
             </div>
