@@ -372,3 +372,8 @@
   font-size: 2vh;
   cursor: pointer;
 }
+
+.option-buttons {
+  position: absolute;
+  top: 15vh;
+}
