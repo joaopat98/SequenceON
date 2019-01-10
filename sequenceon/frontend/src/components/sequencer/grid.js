@@ -15,8 +15,9 @@ class Grid extends Component {
             selectedNotes: [],
             notes: this.props.notes[this.props.instrument],
             noteSize: 1,
-            caret: 0
-        }
+            caret: 0,
+            selecting: false,
+        };
         this.shiftState = false;
         this.removeNotes = this.removeNotes.bind(this);
     }
@@ -140,10 +141,90 @@ class Grid extends Component {
                 })
             }
         }
-    }
+    };
+
+    startSelection = ev => {
+        let rect = ev.currentTarget.getBoundingClientRect();
+        this.baseX = ev.clientX - rect.x + ev.currentTarget.scrollLeft;
+        console.log(this.baseX);
+        this.baseY = ev.clientY - rect.y + ev.currentTarget.scrollTop;
+        ev.currentTarget.addEventListener("mousemove", this.updateSelection);
+        this.wasShift = this.shiftState;
+        this.prevNotes = this.state.selectedNotes;
+    };
+
+    endSelect = ev => {
+
+        ev.currentTarget.removeEventListener("mousemove", this.updateSelection);
+        if (this.state.selecting) {
+            let baseLen = parseInt(this.props.cellWidth.substring(0, this.props.cellWidth.length - 2));
+            let baseHeight = parseInt(this.props.cellHeight.substring(0, this.props.cellHeight.length - 2));
+            let s = {
+                x1: Math.floor(Math.min(this.state.baseX, this.state.x) / baseLen),
+                x2: Math.ceil(Math.max(this.state.baseX, this.state.x) / baseLen),
+                y1: Math.floor(Math.min(this.state.baseY, this.state.y) / baseHeight),
+                y2: Math.ceil(Math.max(this.state.baseY, this.state.y) / baseHeight),
+            };
+            let notes;
+            if (this.wasShift) {
+                notes = this.state.notes.filter(note => {
+                    return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y && this.prevNotes.indexOf(note) === -1;
+                });
+                notes = notes.concat(this.prevNotes);
+            } else {
+                notes = this.state.notes.filter(note => {
+                    return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y;
+                });
+            }
+
+            this.setState({selecting: false, selectedNotes: notes});
+        }
+    };
+
+    updateSelection = ev => {
+        let rect = ev.currentTarget.getBoundingClientRect();
+        let notes;
+        let baseLen = parseInt(this.props.cellWidth.substring(0, this.props.cellWidth.length - 2));
+        let baseHeight = parseInt(this.props.cellHeight.substring(0, this.props.cellHeight.length - 2));
+        let x = ev.clientX - rect.x + ev.currentTarget.scrollLeft;
+        let y = ev.clientY - rect.y + ev.currentTarget.scrollTop;
+        console.log(x);
+        let s = {
+            x1: Math.floor(Math.min(this.baseX, x) / baseLen),
+            x2: Math.ceil(Math.max(this.baseX, x) / baseLen),
+            y1: Math.floor(Math.min(this.baseY, y) / baseHeight),
+            y2: Math.ceil(Math.max(this.baseY, y) / baseHeight),
+        };
+        if (this.wasShift) {
+            notes = this.state.notes.filter(note => {
+                return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y && this.prevNotes.indexOf(note) === -1;
+            });
+            notes = notes.concat(this.prevNotes);
+        } else {
+            notes = this.state.notes.filter(note => {
+                return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y;
+            });
+        }
+
+        this.setState({
+            selecting: true,
+            baseX: this.baseX,
+            baseY: this.baseY,
+            x: x,
+            y: y,
+            selectedNotes: notes
+        })
+    };
 
     render() {
-
+        let rect;
+        if (this.state.selecting) {
+            let x = Math.min(this.state.baseX, this.state.x);
+            let y = Math.min(this.state.baseY, this.state.y);
+            let w = Math.max(this.state.baseX, this.state.x) - x;
+            let h = Math.max(this.state.baseY, this.state.y) - y;
+            rect = {x: x, y: y, w: w, h: h};
+        }
         let xarr = [];
         let yarr = [];
         for (let i = 0; i < this.props.xlen; i++)
@@ -151,7 +232,8 @@ class Grid extends Component {
         for (let i = 0; i < (this.props.drums ? 13 : 7 * 12); i++)
             yarr.push(i);
         return (
-            <div onScroll={ev => this.props.onScroll(ev.target.scrollTop)} className="grid-container"
+            <div onMouseDown={this.startSelection} onMouseUp={this.endSelect}
+                 onScroll={ev => this.props.onScroll(ev.target.scrollTop)} className="grid-container"
                  style={{height: this.props.height, width: this.props.width}}>
                 {this.props.show ?
                     <div>
@@ -184,6 +266,16 @@ class Grid extends Component {
                     </div>
                     : null
                 }
+
+                {this.state.selecting ? (
+                    <div className="select-area" onMouseMove={this.updateSelection} style={{
+                        width: "calc(" + this.props.xlen + " * " + this.props.cellWidth + ")",
+                        height: "calc(" + yarr.length + " * " + this.props.cellHeight + ")"
+                    }}>
+                        <div className="selection"
+                             style={{left: rect.x, top: rect.y, width: rect.w + "px", height: rect.h + "px"}}/>
+                    </div>
+                ) : null}
                 <div hidden>
                     {this.props.drums ?
                         <MIDISounds

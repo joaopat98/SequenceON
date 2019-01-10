@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 
 class Note extends Component {
     constructor(props) {
@@ -15,7 +15,7 @@ class Note extends Component {
         let len = Math.max(1, (ev.clientX - this.baseX) / this.baseLen);
         let dif = len - Math.floor(len);
         let prevLen = dif > 0.2 ? Math.ceil(len) : Math.floor(len);
-        this.setState({ length: len, prevLength: prevLen });
+        this.setState({length: len, prevLength: prevLen});
     }
 
     onSize = ev => {
@@ -26,16 +26,22 @@ class Note extends Component {
         let drag = this.onDrag.bind(this);
         document.addEventListener("mousemove", drag);
         let self = this;
+
         function end() {
             document.removeEventListener("mousemove", drag);
             document.removeEventListener("mouseup", end);
             let len = self.state.prevLength;
             if (len !== undefined) {
-                self.setState({ length: len, prevLength: undefined });
+                self.setState({length: len, prevLength: undefined});
                 self.props.changeLen(self.props.note, len);
             }
         };
         document.addEventListener("mouseup", end);
+    }
+
+    onClick = ev => {
+        ev.stopPropagation();
+        this.props.onClick(ev, this.props.note, this.props.selected);
     }
 
     render() {
@@ -49,16 +55,16 @@ class Note extends Component {
                 {this.state.prevLength !== undefined ?
                     (
                         <div className="preview-note"
-                            style={{
-                                width: "calc(" + this.props.cellWidth + " * " + this.state.prevLength + ")",
-                            }}></div>
+                             style={{
+                                 width: "calc(" + this.props.cellWidth + " * " + this.state.prevLength + ")",
+                             }}/>
                     )
                     : null}
-                <div onClick={ev => { this.props.onClick(ev, this.props.note, this.props.selected) }}
-                    className={"note" + (this.props.selected ? " note-selected" : "")}
-                    style={{
-                        width: "calc(" + this.props.cellWidth + " * " + this.state.length + ")",
-                    }}>
+                <div onClick={this.onClick} onMouseDown={ev => ev.stopPropagation()}
+                     className={"note" + (this.props.selected ? " note-selected" : "")}
+                     style={{
+                         width: "calc(" + this.props.cellWidth + " * " + this.state.length + ")",
+                     }}>
                     <div className="note-right" onMouseDown={this.props.editable ? this.onSize.bind(this) : undefined}/>
                 </div>
             </div>
