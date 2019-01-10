@@ -145,8 +145,9 @@ class Grid extends Component {
 
     startSelection = ev => {
         let rect = ev.currentTarget.getBoundingClientRect();
-        this.baseX = ev.clientX - rect.x;
-        this.baseY = ev.clientY - rect.y;
+        this.baseX = ev.clientX - rect.x + ev.currentTarget.scrollLeft;
+        console.log(this.baseX);
+        this.baseY = ev.clientY - rect.y + ev.currentTarget.scrollTop;
         ev.currentTarget.addEventListener("mousemove", this.updateSelection);
         this.wasShift = this.shiftState;
         this.prevNotes = this.state.selectedNotes;
@@ -167,12 +168,12 @@ class Grid extends Component {
             let notes;
             if (this.wasShift) {
                 notes = this.state.notes.filter(note => {
-                    return s.x1 <= note.x && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y && this.prevNotes.indexOf(note) === -1;
+                    return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y && this.prevNotes.indexOf(note) === -1;
                 });
                 notes = notes.concat(this.prevNotes);
             } else {
                 notes = this.state.notes.filter(note => {
-                    return s.x1 <= note.x && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y;
+                    return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y;
                 });
             }
 
@@ -185,20 +186,23 @@ class Grid extends Component {
         let notes;
         let baseLen = parseInt(this.props.cellWidth.substring(0, this.props.cellWidth.length - 2));
         let baseHeight = parseInt(this.props.cellHeight.substring(0, this.props.cellHeight.length - 2));
+        let x = ev.clientX - rect.x + ev.currentTarget.scrollLeft;
+        let y = ev.clientY - rect.y + ev.currentTarget.scrollTop;
+        console.log(x);
         let s = {
-            x1: Math.floor(Math.min(this.state.baseX, this.state.x) / baseLen),
-            x2: Math.ceil(Math.max(this.state.baseX, this.state.x) / baseLen),
-            y1: Math.floor(Math.min(this.state.baseY, this.state.y) / baseHeight),
-            y2: Math.ceil(Math.max(this.state.baseY, this.state.y) / baseHeight),
+            x1: Math.floor(Math.min(this.baseX, x) / baseLen),
+            x2: Math.ceil(Math.max(this.baseX, x) / baseLen),
+            y1: Math.floor(Math.min(this.baseY, y) / baseHeight),
+            y2: Math.ceil(Math.max(this.baseY, y) / baseHeight),
         };
         if (this.wasShift) {
             notes = this.state.notes.filter(note => {
-                return s.x1 <= note.x && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y && this.prevNotes.indexOf(note) === -1;
+                return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y && this.prevNotes.indexOf(note) === -1;
             });
             notes = notes.concat(this.prevNotes);
         } else {
             notes = this.state.notes.filter(note => {
-                return s.x1 <= note.x && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y;
+                return s.x1 <= note.x + note.length - 1 && s.x2 > note.x && s.y1 <= note.y && s.y2 > note.y;
             });
         }
 
@@ -206,8 +210,8 @@ class Grid extends Component {
             selecting: true,
             baseX: this.baseX,
             baseY: this.baseY,
-            x: ev.clientX - rect.x,
-            y: ev.clientY - rect.y,
+            x: x,
+            y: y,
             selectedNotes: notes
         })
     };
@@ -220,7 +224,6 @@ class Grid extends Component {
             let w = Math.max(this.state.baseX, this.state.x) - x;
             let h = Math.max(this.state.baseY, this.state.y) - y;
             rect = {x: x, y: y, w: w, h: h};
-            console.log(this.state);
         }
         let xarr = [];
         let yarr = [];
