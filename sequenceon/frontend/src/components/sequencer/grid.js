@@ -16,8 +16,10 @@ class Grid extends Component {
             notes: this.props.notes[this.props.instrument],
             noteSize: 1,
             caret: 0,
-            selecting: false,
+            mouseState: undefined,
         };
+        this.baseLen = parseInt(this.props.cellWidth.substring(0, this.props.cellWidth.length - 2));
+        this.baseHeight = parseInt(this.props.cellHeight.substring(0, this.props.cellHeight.length - 2));
         this.shiftState = false;
         this.removeNotes = this.removeNotes.bind(this);
     }
@@ -62,7 +64,7 @@ class Grid extends Component {
         this.props.addNote({x: x, y: y, length: length}, this.props.instrument);
         let notes = [...this.state.notes, {x: x, y: y, length: length}];
         this.setState({notes: notes});
-    }
+    };
 
     removeNotes = ev => {
         if (String.fromCharCode(ev.keyCode) === ".") {
@@ -75,7 +77,7 @@ class Grid extends Component {
             this.props.removeNotes(this.state.selectedNotes, this.props.instrument);
             this.setState({notes: notes, selectedNotes: []});
         }
-    }
+    };
 
     selectNote = (ev, note, selected) => {
         if (note !== undefined && !selected) {
@@ -89,14 +91,23 @@ class Grid extends Component {
         } else if (!ev.target.classList.contains("note")) {
             this.setState({selectedNotes: []})
         }
-    }
+    };
 
-    changeLen = (note, length) => {
-        let i = this.state.notes.indexOf(note);
-        let notes = this.state.notes.slice();
-        notes[i].length = length;
-        this.setState({notes: notes, noteSize: length});
-        this.props.changeLen(notes[i], this.props.instrument);
+    changeLen = (note, length, selected) => {
+        if (selected) {
+            let offset = length - note.length;
+            this.state.selectedNotes.forEach(n => {
+                n.length = Math.max(1, n.length + offset);
+                this.props.changeLen(n, this.props.instrument)
+            });
+            this.forceUpdate()
+        } else {
+            let i = this.state.notes.indexOf(note);
+            let notes = this.state.notes.slice();
+            notes[i].length = length;
+            this.setState({notes: notes, noteSize: length});
+            this.props.changeLen(notes[i], this.props.instrument);
+        }
     };
 
     updateShiftState = ev => {
@@ -105,14 +116,37 @@ class Grid extends Component {
         }
     };
 
+    copyNotes = () => {
+        if (this.props.show) {
+            this.copiedNotes = this.state.selectedNotes;
+            console.log(this.copiedNotes);
+        }
+    };
+
+    pasteNotes = () => {
+        if (this.props.show) {
+            let min = Math.min(...this.copiedNotes.map(note => note.x));
+            let offset = this.props.timer.cur - min;
+            let newNotes = this.copiedNotes.map(note => {
+                this.props.addNote({x: note.x + offset, y: note.y, length: note.length}, this.props.instrument);
+                return {x: note.x + offset, y: note.y, length: note.length};
+            });
+            newNotes = [...this.state.notes, ...newNotes];
+            this.setState({notes: newNotes})
+        }
+    };
+
     componentDidMount() {
         if (this.props.drums)
             this.drums.map(drum => this.midiSounds.cacheDrum(drum));
         document.addEventListener("click", this.selectNote);
-        if (this.props.editable)
+        if (this.props.editable) {
+            document.addEventListener("copy", this.copyNotes);
+            document.addEventListener("paste", this.pasteNotes.bind(this));
             document.addEventListener("keydown", this.removeNotes);
-        document.addEventListener("keyup", this.updateShiftState);
-        document.addEventListener("keydown", this.updateShiftState);
+            document.addEventListener("keyup", this.updateShiftState);
+            document.addEventListener("keydown", this.updateShiftState);
+        }
         this.props.timer.registerCallback(this.playNotes);
         this.props.listeners[this.props.instrument] = this.receiveUpdate.bind(this);
     }
@@ -146,7 +180,6 @@ class Grid extends Component {
     startSelection = ev => {
         let rect = ev.currentTarget.getBoundingClientRect();
         this.baseX = ev.clientX - rect.x + ev.currentTarget.scrollLeft;
-        console.log(this.baseX);
         this.baseY = ev.clientY - rect.y + ev.currentTarget.scrollTop;
         ev.currentTarget.addEventListener("mousemove", this.updateSelection);
         this.wasShift = this.shiftState;
@@ -156,7 +189,7 @@ class Grid extends Component {
     endSelect = ev => {
 
         ev.currentTarget.removeEventListener("mousemove", this.updateSelection);
-        if (this.state.selecting) {
+        if (this.state.mouseState === "selecting") {
             let baseLen = parseInt(this.props.cellWidth.substring(0, this.props.cellWidth.length - 2));
             let baseHeight = parseInt(this.props.cellHeight.substring(0, this.props.cellHeight.length - 2));
             let s = {
@@ -177,9 +210,55 @@ class Grid extends Component {
                 });
             }
 
-            this.setState({selecting: false, selectedNotes: notes});
+            this.setState({mouseState: undefined, selectedNotes: notes});
         }
     };
+
+    holdNote = ev => {
+        let rect = ev.currentTarget.getBoundingClientRect();
+        this.pos = {x: rect.x, y: rect.y};
+        let elem = ev.currentTarget;
+
+        function startDrag() {
+            elem.removeEventListener("mousemove", startDrag);
+            this.setState({mouseState: "dragging"});
+        }
+
+        elem.addEventListener("mousemove", startDrag.bind(this));
+    };
+
+    dragNotes = ev => {
+        let offsetX = 0;
+        let offsetY = 0;
+        if (ev.clientX > this.pos.x + this.baseLen) {
+            offsetX = 1;
+            this.pos.x += this.baseLen;
+        } else if (ev.clientX < this.pos.x) {
+            offsetX = -1;
+            this.pos.x -= this.baseLen;
+        }
+
+        if (ev.clientY > this.pos.y + this.baseHeight) {
+            offsetY = 1;
+            this.pos.y += this.baseHeight;
+        } else if (ev.clientY < this.pos.y) {
+            offsetY = -1;
+            this.pos.y -= this.baseHeight;
+        }
+
+        if (offsetX !== 0 || offsetY !== 0) {
+            this.state.selectedNotes.forEach(note => {
+                note.x += offsetX;
+                note.y += offsetY;
+            });
+            this.forceUpdate();
+        }
+    };
+
+    stopDragging = () => {
+        this.setState({mouseState: undefined})
+    };
+
 
     updateSelection = ev => {
         let rect = ev.currentTarget.getBoundingClientRect();
@@ -207,7 +286,7 @@ class Grid extends Component {
         }
 
         this.setState({
-            selecting: true,
+            mouseState: "selecting",
             baseX: this.baseX,
             baseY: this.baseY,
             x: x,
@@ -218,7 +297,7 @@ class Grid extends Component {
 
     render() {
         let rect;
-        if (this.state.selecting) {
+        if (this.state.mouseState === "selecting") {
             let x = Math.min(this.state.baseX, this.state.x);
             let y = Math.min(this.state.baseY, this.state.y);
             let w = Math.max(this.state.baseX, this.state.x) - x;
@@ -253,6 +332,7 @@ class Grid extends Component {
                     }}>
                         {this.state.notes.filter(note => note.x < this.props.timer._repeat).map(note => {
                             return <Note editable={this.props.editable}
+                                         holdNote={this.holdNote}
                                          key={Math.floor(Math.random() * 1000000)}
                                          onClick={this.selectNote}
                                          cellHeight={this.props.cellHeight}
@@ -267,13 +347,18 @@ class Grid extends Component {
                     : null
                 }
 
-                {this.state.selecting ? (
-                    <div className="select-area" onMouseMove={this.updateSelection} style={{
-                        width: "calc(" + this.props.xlen + " * " + this.props.cellWidth + ")",
-                        height: "calc(" + yarr.length + " * " + this.props.cellHeight + ")"
-                    }}>
-                        <div className="selection"
-                             style={{left: rect.x, top: rect.y, width: rect.w + "px", height: rect.h + "px"}}/>
+                {this.state.mouseState !== undefined ? (
+                    <div className="select-area"
+                         onMouseMove={this.state.mouseState === "selecting" ? this.updateSelection : this.dragNotes}
+                         onMouseUp={this.state.mouseState === "dragging" ? this.stopDragging : undefined}
+                         style={{
+                             width: "calc(" + this.props.xlen + " * " + this.props.cellWidth + ")",
+                             height: "calc(" + yarr.length + " * " + this.props.cellHeight + ")"
+                         }}>
+                        {this.state.mouseState === "selecting" ? (
+                            <div className="selection"
+                                 style={{left: rect.x, top: rect.y, width: rect.w + "px", height: rect.h + "px"}}/>
+                        ) : null}
                     </div>
                 ) : null}
                 <div hidden>

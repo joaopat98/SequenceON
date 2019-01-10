@@ -9,7 +9,7 @@ class Note extends Component {
         }
     }
 
-    onDrag = ev => {
+    onStretch = ev => {
         ev.preventDefault();
         ev.stopPropagation();
         let len = Math.max(1, (ev.clientX - this.baseX) / this.baseLen);
@@ -23,7 +23,7 @@ class Note extends Component {
         ev.stopPropagation();
         this.baseX = ev.currentTarget.parentNode.getBoundingClientRect().x;
         this.baseLen = parseInt(this.props.cellWidth.substring(0, this.props.cellWidth.length - 2));
-        let drag = this.onDrag.bind(this);
+        let drag = this.onStretch.bind(this);
         document.addEventListener("mousemove", drag);
         let self = this;
 
@@ -33,16 +33,22 @@ class Note extends Component {
             let len = self.state.prevLength;
             if (len !== undefined) {
                 self.setState({length: len, prevLength: undefined});
-                self.props.changeLen(self.props.note, len);
+                self.props.changeLen(self.props.note, len, self.props.selected);
             }
-        };
+        }
+
         document.addEventListener("mouseup", end);
-    }
+    };
+
+    onHold = ev => {
+        ev.stopPropagation();
+        this.props.holdNote(ev);
+    };
 
     onClick = ev => {
         ev.stopPropagation();
         this.props.onClick(ev, this.props.note, this.props.selected);
-    }
+    };
 
     render() {
         return (
@@ -60,7 +66,7 @@ class Note extends Component {
                              }}/>
                     )
                     : null}
-                <div onClick={this.onClick} onMouseDown={ev => ev.stopPropagation()}
+                <div onClick={this.onClick} onMouseDown={this.onHold}
                      className={"note" + (this.props.selected ? " note-selected" : "")}
                      style={{
                          width: "calc(" + this.props.cellWidth + " * " + this.state.length + ")",

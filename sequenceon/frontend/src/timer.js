@@ -73,6 +73,8 @@ class Timer {
 
     stop() {
         this._timer.stop();
+        this.callBacks.forEach(elem => elem(this.cur));
+        this.curCallBacks.forEach(elem => elem(this.cur));
         this.isRunning = false;
     }
 
