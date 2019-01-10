@@ -117,14 +117,14 @@ class Grid extends Component {
     };
 
     copyNotes = () => {
-        if (this.props.show) {
+        if (this.props.show && this.props.editable) {
             this.copiedNotes = this.state.selectedNotes;
             console.log(this.copiedNotes);
         }
     };
 
     pasteNotes = () => {
-        if (this.props.show) {
+        if (this.props.show && this.props.editable) {
             let min = Math.min(...this.copiedNotes.map(note => note.x));
             let offset = this.props.timer.cur - min;
             let newNotes = this.copiedNotes.map(note => {
@@ -215,16 +215,18 @@ class Grid extends Component {
     };
 
     holdNote = ev => {
-        let rect = ev.currentTarget.getBoundingClientRect();
-        this.pos = {x: rect.x, y: rect.y};
-        let elem = ev.currentTarget;
+        if (this.props.editable) {
+            let rect = ev.currentTarget.getBoundingClientRect();
+            this.pos = {x: rect.x, y: rect.y};
+            let elem = ev.currentTarget;
 
-        function startDrag() {
-            elem.removeEventListener("mousemove", startDrag);
-            this.setState({mouseState: "dragging"});
+            let startDrag = () => {
+                elem.removeEventListener("mousemove", startDrag);
+                this.setState({mouseState: "dragging"});
+            };
+
+            elem.addEventListener("mousemove", startDrag.bind(this));
         }
-
-        elem.addEventListener("mousemove", startDrag.bind(this));
     };
 
     dragNotes = ev => {
