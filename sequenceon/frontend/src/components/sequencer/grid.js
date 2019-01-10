@@ -93,12 +93,21 @@ class Grid extends Component {
         }
     };
 
-    changeLen = (note, length) => {
-        let i = this.state.notes.indexOf(note);
-        let notes = this.state.notes.slice();
-        notes[i].length = length;
-        this.setState({notes: notes, noteSize: length});
-        this.props.changeLen(notes[i], this.props.instrument);
+    changeLen = (note, length, selected) => {
+        if (selected) {
+            let offset = length - note.length;
+            this.state.selectedNotes.forEach(n => {
+                n.length = Math.max(1, n.length + offset);
+                this.props.changeLen(n, this.props.instrument)
+            });
+            this.forceUpdate()
+        } else {
+            let i = this.state.notes.indexOf(note);
+            let notes = this.state.notes.slice();
+            notes[i].length = length;
+            this.setState({notes: notes, noteSize: length});
+            this.props.changeLen(notes[i], this.props.instrument);
+        }
     };
 
     updateShiftState = ev => {
@@ -107,14 +116,37 @@ class Grid extends Component {
         }
     };
 
+    copyNotes = () => {
+        if (this.props.show) {
+            this.copiedNotes = this.state.selectedNotes;
+            console.log(this.copiedNotes);
+        }
+    };
+
+    pasteNotes = () => {
+        if (this.props.show) {
+            let min = Math.min(...this.copiedNotes.map(note => note.x));
+            let offset = this.props.timer.cur - min;
+            let newNotes = this.copiedNotes.map(note => {
+                this.props.addNote({x: note.x + offset, y: note.y, length: note.length}, this.props.instrument);
+                return {x: note.x + offset, y: note.y, length: note.length};
+            });
+            newNotes = [...this.state.notes, ...newNotes];
+            this.setState({notes: newNotes})
+        }
+    };
+
     componentDidMount() {
         if (this.props.drums)
             this.drums.map(drum => this.midiSounds.cacheDrum(drum));
         document.addEventListener("click", this.selectNote);
-        if (this.props.editable)
+        if (this.props.editable) {
+            document.addEventListener("copy", this.copyNotes);
+            document.addEventListener("paste", this.pasteNotes.bind(this));
             document.addEventListener("keydown", this.removeNotes);
-        document.addEventListener("keyup", this.updateShiftState);
-        document.addEventListener("keydown", this.updateShiftState);
+            document.addEventListener("keyup", this.updateShiftState);
+            document.addEventListener("keydown", this.updateShiftState);
+        }
         this.props.timer.registerCallback(this.playNotes);
         this.props.listeners[this.props.instrument] = this.receiveUpdate.bind(this);
     }

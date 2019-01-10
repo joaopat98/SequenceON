@@ -33,7 +33,7 @@ class Note extends Component {
             let len = self.state.prevLength;
             if (len !== undefined) {
                 self.setState({length: len, prevLength: undefined});
-                self.props.changeLen(self.props.note, len);
+                self.props.changeLen(self.props.note, len, self.props.selected);
             }
         }
 
