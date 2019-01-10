@@ -50,6 +50,11 @@ class ChatConsumer(WebsocketConsumer):
         obj = json.loads(text_data)
         sheet = get_sheet(self.scope["session"])
         if obj["instrument"] == sheet.instrument:
+            if obj["action"] == "ping":
+                self.send(text_data=json.dumps({
+                    'action': "pong"
+                }))
+                return
             if obj["action"] == "add":
                 for note in obj["notes"]:
                     new_note = Note(time=note["x"], pitch=note["y"], length=note["length"], sheet=sheet)

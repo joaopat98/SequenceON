@@ -115,6 +115,10 @@ class SequencerGroup extends Component {
                 protocol + '//' + window.location.host +
                 '/ws/group');
 
+            this.chatSocket.onopen = e => {
+                window.setInterval(() => this.chatSocket.send(JSON.stringify({action: "ping"})),1000)
+            }
+
 
             this.chatSocket.onmessage = e => {
                 let data = JSON.parse(e.data);
