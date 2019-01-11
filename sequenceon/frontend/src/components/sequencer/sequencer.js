@@ -113,7 +113,9 @@ class Sequencer extends Component {
                             <div className="sequencer">
                                 <Keyboard scrollRef={this.keyboard} drums={false} keyHeight="20px" height="100%" width="10%"
                                           instrumentId={this.instrumentId}/>
-                                <Grid changeLen={this.props.changeLen} editable={this.props.editable} removeNotes={this.props.removeNotes} listeners={this.props.listeners}
+                                <Grid changeLen={this.props.changeLen} editable={this.props.editable}
+                                      removeNotes={this.props.removeNotes} listeners={this.props.listeners}
+                                      offsetNotes={this.props.offsetNotes}
                                       addNote={this.props.addNote} onScroll={this.scroll} muted={this.state.muted}
                                       setSolo={this.props.setSolo} solo={this.props.solo} show={true} drums={false}
                                       notes={this.props.notes} xlen={this.props.xlen} timer={this.props.timer} bpm={120}
@@ -124,7 +126,9 @@ class Sequencer extends Component {
                             <div className="sequencer">
                                 <Keyboard scrollRef={this.keyboard} drums={true} keyHeight="41px" height="100%" width="10%"
                                           instrumentId={this.instrumentId}/>
-                                <Grid changeLen={this.props.changeLen} editable={this.props.editable} removeNotes={this.props.removeNotes} listeners={this.props.listeners}
+                                <Grid changeLen={this.props.changeLen} editable={this.props.editable}
+                                      offsetNotes={this.props.offsetNotes}
+                                      removeNotes={this.props.removeNotes} listeners={this.props.listeners}
                                       addNote={this.props.addNote} onScroll={this.scroll} muted={this.state.muted}
                                       setSolo={this.props.setSolo} solo={this.props.solo} show={true} drums={true}
                                       notes={this.props.notes} xlen={this.props.xlen} timer={this.props.timer} bpm={120}
@@ -134,7 +138,9 @@ class Sequencer extends Component {
                     )
                     :
                     <div hidden className="sequencer">
-                        <Grid changeLen={this.props.changeLen} editable={this.props.editable} removeNotes={this.props.removeNotes} listeners={this.props.listeners}
+                        <Grid changeLen={this.props.changeLen} editable={this.props.editable}
+                              offsetNotes={this.props.offsetNotes}
+                              removeNotes={this.props.removeNotes} listeners={this.props.listeners}
                               onScroll={this.scroll} muted={this.state.muted} setSolo={this.props.setSolo}
                               solo={this.props.solo} show={false} notes={this.props.notes} xlen={this.props.xlen}
                               drums={this.props.instrument === "Drums"} timer={this.props.timer} bpm={120}

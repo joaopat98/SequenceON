@@ -49,6 +49,12 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data):
         obj = json.loads(text_data)
         sheet = get_sheet(self.scope["session"])
+        if obj["action"] == "ping":
+            self.send(text_data=json.dumps({
+                "message": json.dumps({'action': "pong"})
+
+            }))
+            return
         if obj["instrument"] == sheet.instrument:
             if obj["action"] == "add":
                 for note in obj["notes"]:
@@ -67,6 +73,12 @@ class ChatConsumer(WebsocketConsumer):
                 sheet.song.length = obj["length"]
                 sheet.song.save()
             # Send message to room group
+            elif obj["action"] == "offset":
+                for note in obj["notes"]:
+                    new_note = Note.objects.filter(time=note["x"], pitch=note["y"], sheet=sheet).first()
+                    new_note.time = new_note.time + obj["offsetX"]
+                    new_note.pitch = new_note.pitch + obj["offsetY"]
+                    new_note.save()
             async_to_sync(self.channel_layer.group_send)(
                 str(self.scope["session"]["song"]),
                 {

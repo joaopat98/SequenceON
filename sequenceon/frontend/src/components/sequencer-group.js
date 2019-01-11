@@ -58,7 +58,7 @@ class SequencerGroup extends Component {
         a.href = URL.createObjectURL(file);
         let filename = "Song " + this.props.song + ", " + (new Date()).toLocaleString() + ".json";
         console.log(filename);
-        a.download = filename.replace(/:/g,"-").replace(/\//g,"-");
+        a.download = filename.replace(/:/g, "-").replace(/\//g, "-");
         a.click();
     }
 
@@ -115,11 +115,16 @@ class SequencerGroup extends Component {
                 protocol + '//' + window.location.host +
                 '/ws/group');
 
+            this.chatSocket.onopen = e => {
+                window.setInterval(() => this.chatSocket.send(JSON.stringify({action: "ping"})), 1000)
+            };
+
 
             this.chatSocket.onmessage = e => {
                 let data = JSON.parse(e.data);
                 let message = data['message'];
                 data = JSON.parse(message);
+                let changing;
                 switch (data.action) {
                     case "add":
                         data.notes.forEach(note => {
@@ -140,12 +145,15 @@ class SequencerGroup extends Component {
                         }
                         break;
                     case "change_length":
-                        let changing = this.notes[data.instrument];
+                        changing = this.notes[data.instrument];
                         for (let i = 0; i < data.notes.length; i++) {
                             let change = data.notes[i];
-                            let j = changing.findIndex(note => (note.x === note.x && note.y === change.y));
+                            let j = changing.findIndex(note => (note.x === change.x && note.y === change.y));
                             changing[j].length = change.length;
                         }
+                        break;
+                    case "offset":
+                        
                         break;
                     case "length":
                         this.changeTimer(undefined, data.length);
@@ -156,6 +164,8 @@ class SequencerGroup extends Component {
                         users[data.instrument] = data.username;
                         this.setState({users: users});
                         break;
+                    default:
+                        return;
                 }
                 this.listeners[data.instrument](data);
             };
@@ -190,6 +200,13 @@ class SequencerGroup extends Component {
         }
     };
 
+    offsetNotes = (notes, offsetX, offsetY, instrument) => {
+        if (this.props.online) {
+            let data = {notes: notes, offsetX: offsetX, offsetY:offsetY, instrument: instrument, action: "offset"};
+            this.chatSocket.send(JSON.stringify(data));
+        }
+    };
+
 
     render() {
         let hidden = [...Object.keys(this.state.users)];
@@ -200,6 +217,7 @@ class SequencerGroup extends Component {
                 <div className="hidden-sequencers">
                     {hidden.map(instrument => (
                         <Sequencer changeLen={this.changeLen}
+                                   offsetNotes={this.offsetNotes}
                                    editable={instrument === this.props.instrument || !this.props.online}
                                    username={this.state.users[instrument]}
                                    removeNotes={this.removeNotes} listeners={this.listeners} key={instrument}
@@ -212,6 +230,7 @@ class SequencerGroup extends Component {
                 </div>
                 <div className="main-sequencer">
                     <Sequencer changeLen={this.changeLen}
+                               offsetNotes={this.offsetNotes}
                                editable={this.state.selectedInstrument === this.props.instrument || !this.props.online}
                                username={this.state.users[this.state.selectedInstrument]}
                                removeNotes={this.removeNotes} listeners={this.listeners} addNote={this.addNote}
