@@ -153,7 +153,7 @@ class SequencerGroup extends Component {
                         }
                         break;
                     case "offset":
-                        
+
                         break;
                     case "length":
                         this.changeTimer(undefined, data.length);
@@ -202,7 +202,7 @@ class SequencerGroup extends Component {
 
     offsetNotes = (notes, offsetX, offsetY, instrument) => {
         if (this.props.online) {
-            let data = {notes: notes, offsetX: offsetX, offsetY:offsetY, instrument: instrument, action: "offset"};
+            let data = {notes: notes, offsetX: offsetX, offsetY: offsetY, instrument: instrument, action: "offset"};
             this.chatSocket.send(JSON.stringify(data));
         }
     };
@@ -242,21 +242,23 @@ class SequencerGroup extends Component {
                                select={this.selectSequencer} setSolo={this.setSolo} solo={this.state.solo}
                                timer={this.timer} show={true}/>
                 </div>
-                {this.props.online ? (
-                    <div className="option-buttons">
-                        <br/>
-                        <button onClick={this.copyLink}>Shareable link</button>
-                        <br/>
-                        <button onClick={this.download}>Download copy</button>
-                    </div>
-                ) : null}
-                {!this.props.online ? (
-                    <div className="option-buttons">
-                        <label htmlFor="filebtn" className="file-btn">Load Song</label>
-                        <input id="filebtn" onChange={this.loadNotes} style={{visibility: "hidden"}} type="file"
-                               accept="application/json"/>
-                    </div>
-                ) : null}
+                <div className="option-buttons">
+                    <br/>
+                    <button onClick={this.download}>Download copy</button>
+                    {this.props.online ? (
+                        <div>
+                            <br/>
+                            <button onClick={this.copyLink}>Shareable link</button>
+                        </div>
+                    ) : null}
+                    {!this.props.online ? (
+                        <div>
+                            <label htmlFor="filebtn" className="file-btn">Load Song</label>
+                            <input id="filebtn" onChange={this.loadNotes} style={{visibility: "hidden"}} type="file"
+                                   accept="application/json"/>
+                        </div>
+                    ) : null}
+                </div>
                 <TimeLine warnLen={this.warnLen} timer={this.timer} changeTimer={this.changeTimer}/>
 
             </div>
