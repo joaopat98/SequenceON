@@ -47,11 +47,22 @@ class Grid extends Component {
             case "change_length":
                 for (let i = 0; i < data.notes.length; i++) {
                     let change = data.notes[i];
-                    let j = this.state.notes.findIndex(note => (note.x === note.x && note.y === change.y));
+                    let j = this.state.notes.findIndex(note => (note.x === change.x && note.y === change.y));
                     let notes = this.state.notes.slice();
                     notes[j].length = change.length;
                     this.setState({notes: notes});
                 }
+                break;
+            case "offset":
+                for (let i = 0; i < data.notes.length; i++) {
+                    let change = data.notes[i];
+                    let j = this.state.notes.findIndex(note => (note.x === change.x && note.y === change.y));
+                    let notes = this.state.notes.slice();
+                    notes[j].x += data.offsetX;
+                    notes[j].y += data.offsetY;
+                    this.setState({notes: notes});
+                }
+                break;
         }
     };
 
@@ -224,7 +235,9 @@ class Grid extends Component {
                 elem.removeEventListener("mousemove", startDrag);
                 this.setState({mouseState: "dragging"});
             };
-
+            this.offsetX = 0;
+            this.offsetY = 0;
+            this.selectedNotes = JSON.parse(JSON.stringify(this.state.selectedNotes));
             elem.addEventListener("mousemove", startDrag.bind(this));
         }
     };
@@ -249,6 +262,8 @@ class Grid extends Component {
         }
 
         if (offsetX !== 0 || offsetY !== 0) {
+            this.offsetX += offsetX;
+            this.offsetY += offsetY;
             this.state.selectedNotes.forEach(note => {
                 note.x += offsetX;
                 note.y += offsetY;
@@ -258,6 +273,7 @@ class Grid extends Component {
     };
 
     stopDragging = () => {
+        this.props.offsetNotes(this.selectedNotes, this.offsetX, this.offsetY, this.props.instrument);
         this.setState({mouseState: undefined})
     };
 
